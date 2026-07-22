@@ -6,15 +6,21 @@ import {
   generateRandomEmailPrefix,
   isValidEmailPrefix,
 } from '../utils';
-import { requireAuth } from '../middleware';
+import { requireAuth, verifyAddressOwnership } from '../middleware';
+import { errorResponse, successResponse } from '../helpers';
 
 export const emailAddressRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // Create a new email address
 emailAddressRoutes.post('/', requireAuth, async (c) => {
   const user = c.get('user');
-  const body = await c.req.json();
-  const { prefix } = body;
+  let prefix: string | undefined;
+  try {
+    const body = await c.req.json();
+    prefix = body?.prefix;
+  } catch {
+    // No body or invalid JSON — generate random prefix
+  }
 
   try {
     // Get domain from settings
@@ -28,7 +34,7 @@ emailAddressRoutes.post('/', requireAuth, async (c) => {
     let emailPrefix: string;
     if (prefix) {
       if (!isValidEmailPrefix(prefix)) {
-        return c.json({ error: 'Invalid email prefix format' }, 400);
+        return c.json(errorResponse('Invalid email prefix format', 400));
       }
       emailPrefix = prefix.toLowerCase();
     } else {
@@ -43,7 +49,7 @@ emailAddressRoutes.post('/', requireAuth, async (c) => {
     ).bind(emailAddress).first();
 
     if (existing) {
-      return c.json({ error: 'Email address already exists' }, 409);
+      return c.json(errorResponse('Email address already exists', 409));
     }
 
     // Create the email address
@@ -54,16 +60,15 @@ emailAddressRoutes.post('/', requireAuth, async (c) => {
       'INSERT INTO email_addresses (id, user_id, address, created_at) VALUES (?, ?, ?, ?)'
     ).bind(addressId, user.id, emailAddress, now).run();
 
-    return c.json({
-      success: true,
+    return c.json(successResponse({
       address: {
         id: addressId,
         address: emailAddress,
         created_at: now,
       },
-    });
+    }));
   } catch (error) {
-    return c.json({ error: 'Failed to create email address' }, 500);
+    return c.json(errorResponse('Failed to create email address', 500));
   }
 });
 
@@ -73,20 +78,20 @@ emailAddressRoutes.get('/', requireAuth, async (c) => {
 
   try {
     const addresses = await c.env.DB.prepare(`
-      SELECT 
-        ea.id, 
-        ea.address, 
+      SELECT
+        ea.id,
+        ea.address,
         ea.created_at,
         sp.status as send_permission_status
       FROM email_addresses ea
       LEFT JOIN send_permissions sp ON ea.id = sp.address_id
-      WHERE ea.user_id = ? 
+      WHERE ea.user_id = ?
       ORDER BY ea.created_at DESC
     `).bind(user.id).all();
 
-    return c.json({ addresses: addresses.results });
+    return c.json(successResponse({ addresses: addresses.results }));
   } catch (error) {
-    return c.json({ error: 'Failed to fetch email addresses' }, 500);
+    return c.json(errorResponse('Failed to fetch email addresses', 500));
   }
 });
 
@@ -96,19 +101,16 @@ emailAddressRoutes.delete('/:addressId', requireAuth, async (c) => {
   const addressId = c.req.param('addressId');
 
   try {
-    // Verify ownership
-    const address = await c.env.DB.prepare(
-      'SELECT id FROM email_addresses WHERE id = ? AND user_id = ?'
-    ).bind(addressId, user.id).first();
+    const address = await verifyAddressOwnership(c.env.DB, addressId, user.id);
 
     if (!address) {
-      return c.json({ error: 'Email address not found' }, 404);
+      return c.json(errorResponse('Email address not found', 404));
     }
 
     await c.env.DB.prepare('DELETE FROM email_addresses WHERE id = ?').bind(addressId).run();
 
-    return c.json({ success: true, message: 'Email address deleted' });
+    return c.json(successResponse({ message: 'Email address deleted' }));
   } catch (error) {
-    return c.json({ error: 'Failed to delete email address' }, 500);
+    return c.json(errorResponse('Failed to delete email address', 500));
   }
 });

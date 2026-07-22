@@ -1,8 +1,17 @@
 export interface Env {
   DB: D1Database;
-  SEND_EMAIL: any;
+  SEND_EMAIL: SendEmailBinding;
   ENVIRONMENT: string;
-  ADMIN_TOKEN: string;
+}
+
+export interface SendEmailBinding {
+  send(opts: {
+    from: string;
+    to: string | string[];
+    subject: string;
+    text?: string;
+    html?: string;
+  }): Promise<void>;
 }
 
 export interface Variables {
@@ -37,6 +46,19 @@ export interface Email {
   raw_email: string | null;
   received_at: number;
   expires_at: number | null;
+  is_read: number;
+  read_at: number | null;
+}
+
+export interface SentEmail {
+  id: string;
+  address_id: string;
+  from_address: string;
+  to_address: string;
+  subject: string | null;
+  body_text: string | null;
+  body_html: string | null;
+  sent_at: number;
 }
 
 export interface SendPermission {
@@ -56,4 +78,14 @@ export interface Setting {
 
 export interface AuthContext {
   user: User;
+}
+
+export interface CursorPagination {
+  next_cursor: number | null;
+  has_more: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  pagination: CursorPagination;
 }

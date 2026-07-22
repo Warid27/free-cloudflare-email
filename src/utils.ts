@@ -69,3 +69,24 @@ export function formatUserForResponse(user: any) {
     created_at: user.created_at,
   };
 }
+
+/**
+ * Truncate raw email buffer to maxBytes to avoid D1 100KB row limit.
+ * Returns original buffer if already within limit.
+ */
+export function truncateRawEmail(buffer: Uint8Array, maxBytes = 90000): Uint8Array {
+  if (buffer.length <= maxBytes) return buffer;
+  console.warn(`[EMAIL] raw_email truncated from ${buffer.length} to ${maxBytes} bytes`);
+  return buffer.slice(0, maxBytes);
+}
+
+/**
+ * Strict email validation for send endpoint.
+ * More permissive than isValidEmail (allows longer local parts).
+ */
+export function isValidEmailStrict(email: string): boolean {
+  if (!email || typeof email !== 'string') return false;
+  if (email.length > 254) return false;
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  return emailRegex.test(email);
+}

@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import { Env, Variables } from '../types';
 import { formatEmailForResponse, generateUUID, getCurrentTimestamp } from '../utils';
-import { requireAuth } from '../middleware';
+import { requireAuth, verifyAddressOwnership, verifyEmailOwnership, verifyAddressStringOwnership } from '../middleware';
+import { errorResponse, successResponse } from '../helpers';
 
 export const emailRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -10,6 +11,10 @@ emailRoutes.get('/', requireAuth, async (c) => {
   const user = c.get('user');
   const addressId = c.req.query('address_id');
   const countOnly = c.req.query('count_only') === 'true';
+  const rawLimit = parseInt(c.req.query('limit') || '50');
+  const rawOffset = parseInt(c.req.query('offset') || '0');
+  const limit = isNaN(rawLimit) ? 50 : Math.min(Math.max(rawLimit, 1), 100);
+  const offset = isNaN(rawOffset) ? 0 : Math.max(rawOffset, 0);
 
   try {
     let query;
@@ -17,11 +22,7 @@ emailRoutes.get('/', requireAuth, async (c) => {
 
     if (countOnly) {
       if (addressId) {
-        // Verify ownership
-        const address = await c.env.DB.prepare(
-          'SELECT id FROM email_addresses WHERE id = ? AND user_id = ?'
-        ).bind(addressId, user.id).first();
-
+        const address = await verifyAddressOwnership(c.env.DB, addressId, user.id);
         if (!address) return c.json({ count: 0 });
 
         query = 'SELECT COUNT(*) as count FROM emails WHERE address_id = ?';
@@ -39,33 +40,35 @@ emailRoutes.get('/', requireAuth, async (c) => {
     }
 
     if (addressId) {
-      // Verify ownership of the specific address
-      const address = await c.env.DB.prepare(
-        'SELECT id FROM email_addresses WHERE id = ? AND user_id = ?'
-      ).bind(addressId, user.id).first();
-
+      const address = await verifyAddressOwnership(c.env.DB, addressId, user.id);
       if (!address) {
-        return c.json({ error: 'Email address not found or unauthorized' }, 404);
+        return c.json(errorResponse('Email address not found or unauthorized', 404));
       }
 
       query = `SELECT e.id, e.from_address, e.to_address, e.subject, e.received_at, e.expires_at, e.is_read
                FROM emails e
-               WHERE e.address_id = ? ORDER BY e.received_at DESC LIMIT 100`;
-      params = [addressId];
+               WHERE e.address_id = ? ORDER BY e.received_at DESC LIMIT ? OFFSET ?`;
+      params = [addressId, limit, offset];
     } else {
-      // Get all emails for all user's addresses
       query = `SELECT e.id, e.from_address, e.to_address, e.subject, e.received_at, e.expires_at, e.is_read
                FROM emails e
                INNER JOIN email_addresses ea ON e.address_id = ea.id
-               WHERE ea.user_id = ? ORDER BY e.received_at DESC LIMIT 100`;
-      params = [user.id];
+               WHERE ea.user_id = ? ORDER BY e.received_at DESC LIMIT ? OFFSET ?`;
+      params = [user.id, limit, offset];
     }
 
     const emails = await c.env.DB.prepare(query).bind(...params).all();
 
-    return c.json({ emails: emails.results });
+    return c.json(successResponse({
+      emails: emails.results,
+      pagination: {
+        limit,
+        offset,
+        has_more: emails.results.length === limit,
+      },
+    }));
   } catch (error) {
-    return c.json({ error: 'Failed to fetch emails' }, 500);
+    return c.json(errorResponse('Failed to fetch emails', 500));
   }
 });
 
@@ -73,34 +76,37 @@ emailRoutes.get('/', requireAuth, async (c) => {
 emailRoutes.get('/address/:addressId', requireAuth, async (c) => {
   const user = c.get('user');
   const addressId = c.req.param('addressId');
+  const rawLimit = parseInt(c.req.query('limit') || '50');
+  const rawOffset = parseInt(c.req.query('offset') || '0');
+  const limit = isNaN(rawLimit) ? 50 : Math.min(Math.max(rawLimit, 1), 100);
+  const offset = isNaN(rawOffset) ? 0 : Math.max(rawOffset, 0);
 
   try {
-    // Verify ownership
-    const address = await c.env.DB.prepare(
-      'SELECT id FROM email_addresses WHERE id = ? AND user_id = ?'
-    ).bind(addressId, user.id).first();
-
+    const address = await verifyAddressOwnership(c.env.DB, addressId, user.id);
     if (!address) {
-      return c.json({ error: 'Email address not found or unauthorized' }, 404);
+      return c.json(errorResponse('Email address not found or unauthorized', 404));
     }
 
-    // Get emails
     const emails = await c.env.DB.prepare(
       `SELECT id, from_address, to_address, subject, received_at, expires_at, is_read
-       FROM emails WHERE address_id = ? ORDER BY received_at DESC LIMIT 100`
-    ).bind(addressId).all();
+       FROM emails WHERE address_id = ? ORDER BY received_at DESC LIMIT ? OFFSET ?`
+    ).bind(addressId, limit, offset).all();
 
-    // Get send permission status
     const permission = await c.env.DB.prepare(
       'SELECT status FROM send_permissions WHERE address_id = ?'
-    ).bind(addressId).first();
+    ).bind(addressId).first<{ status: string }>();
 
-    return c.json({
+    return c.json(successResponse({
       emails: emails.results,
-      send_permission_status: permission ? (permission as any).status : null
-    });
+      send_permission_status: permission?.status ?? null,
+      pagination: {
+        limit,
+        offset,
+        has_more: emails.results.length === limit,
+      },
+    }));
   } catch (error) {
-    return c.json({ error: 'Failed to fetch emails' }, 500);
+    return c.json(errorResponse('Failed to fetch emails', 500));
   }
 });
 
@@ -110,20 +116,28 @@ emailRoutes.get('/:emailId', requireAuth, async (c) => {
   const emailId = c.req.param('emailId');
 
   try {
-    // Get email with ownership verification
-    const email = await c.env.DB.prepare(
-      `SELECT e.* FROM emails e
-       INNER JOIN email_addresses ea ON e.address_id = ea.id
-       WHERE e.id = ? AND ea.user_id = ?`
-    ).bind(emailId, user.id).first();
-
-    if (!email) {
-      return c.json({ error: 'Email not found' }, 404);
+    let email;
+    if (user.is_admin) {
+      // Admin can view any email
+      email = await c.env.DB.prepare(
+        `SELECT e.* FROM emails e WHERE e.id = ?`
+      ).bind(emailId).first();
+    } else {
+      // Regular users can only view their own emails
+      email = await c.env.DB.prepare(
+        `SELECT e.* FROM emails e
+         INNER JOIN email_addresses ea ON e.address_id = ea.id
+         WHERE e.id = ? AND ea.user_id = ?`
+      ).bind(emailId, user.id).first();
     }
 
-    return c.json({ email: formatEmailForResponse(email) });
+    if (!email) {
+      return c.json(errorResponse('Email not found', 404));
+    }
+
+    return c.json(successResponse({ email: formatEmailForResponse(email) }));
   } catch (error) {
-    return c.json({ error: 'Failed to fetch email' }, 500);
+    return c.json(errorResponse('Failed to fetch email', 500));
   }
 });
 
@@ -133,22 +147,16 @@ emailRoutes.delete('/:emailId', requireAuth, async (c) => {
   const emailId = c.req.param('emailId');
 
   try {
-    // Verify ownership
-    const email = await c.env.DB.prepare(
-      `SELECT e.id FROM emails e
-       INNER JOIN email_addresses ea ON e.address_id = ea.id
-       WHERE e.id = ? AND ea.user_id = ?`
-    ).bind(emailId, user.id).first();
-
-    if (!email) {
-      return c.json({ error: 'Email not found' }, 404);
+    const ownership = await verifyEmailOwnership(c.env.DB, emailId, user.id);
+    if (!ownership) {
+      return c.json(errorResponse('Email not found', 404));
     }
 
     await c.env.DB.prepare('DELETE FROM emails WHERE id = ?').bind(emailId).run();
 
-    return c.json({ success: true, message: 'Email deleted' });
+    return c.json(successResponse({ message: 'Email deleted' }));
   } catch (error) {
-    return c.json({ error: 'Failed to delete email' }, 500);
+    return c.json(errorResponse('Failed to delete email', 500));
   }
 });
 
@@ -158,28 +166,22 @@ emailRoutes.post('/address/:addressId/request-send', requireAuth, async (c) => {
   const addressId = c.req.param('addressId');
 
   try {
-    // Verify ownership
-    const address = await c.env.DB.prepare(
-      'SELECT id FROM email_addresses WHERE id = ? AND user_id = ?'
-    ).bind(addressId, user.id).first();
-
+    const address = await verifyAddressOwnership(c.env.DB, addressId, user.id);
     if (!address) {
-      return c.json({ error: 'Email address not found' }, 404);
+      return c.json(errorResponse('Email address not found', 404));
     }
 
-    // Check if request already exists
     const existing = await c.env.DB.prepare(
       'SELECT id, status FROM send_permissions WHERE address_id = ?'
-    ).bind(addressId).first();
+    ).bind(addressId).first<{ id: string; status: string }>();
 
     if (existing) {
-      return c.json({
+      return c.json(successResponse({
         message: 'Request already exists',
-        status: (existing as any).status
-      });
+        status: existing.status
+      }));
     }
 
-    // Create permission request
     const permissionId = generateUUID();
     const now = getCurrentTimestamp();
 
@@ -187,16 +189,15 @@ emailRoutes.post('/address/:addressId/request-send', requireAuth, async (c) => {
       'INSERT INTO send_permissions (id, address_id, status, requested_at) VALUES (?, ?, ?, ?)'
     ).bind(permissionId, addressId, 'pending', now).run();
 
-    return c.json({
-      success: true,
+    return c.json(successResponse({
       permission: {
         id: permissionId,
         status: 'pending',
         requested_at: now,
       },
-    });
+    }));
   } catch (error) {
-    return c.json({ error: 'Failed to request send permission' }, 500);
+    return c.json(errorResponse('Failed to request send permission', 500));
   }
 });
 
@@ -207,26 +208,19 @@ emailRoutes.post('/send', requireAuth, async (c) => {
   const { from, to, subject, text, html } = body;
 
   try {
-    // Verify from address ownership
-    const address = await c.env.DB.prepare(
-      'SELECT id FROM email_addresses WHERE address = ? AND user_id = ?'
-    ).bind(from, user.id).first();
-
+    const address = await verifyAddressStringOwnership(c.env.DB, from, user.id);
     if (!address) {
-      return c.json({ error: 'From address not found or unauthorized' }, 404);
+      return c.json(errorResponse('From address not found or unauthorized', 404));
     }
 
-    // Check send permission
     const permission = await c.env.DB.prepare(
       'SELECT status FROM send_permissions WHERE address_id = ? AND status = ?'
-    ).bind((address as any).id, 'approved').first();
+    ).bind(address.id, 'approved').first();
 
     if (!permission) {
-      return c.json({ error: 'Send permission not approved for this address' }, 403);
+      return c.json(errorResponse('Send permission not approved for this address', 403));
     }
 
-    // Send email using Cloudflare's email sending
-    // Note: This requires the send_email binding to be properly configured
     try {
       await c.env.SEND_EMAIL.send({
         from: from,
@@ -236,12 +230,24 @@ emailRoutes.post('/send', requireAuth, async (c) => {
         html: html,
       });
 
-      return c.json({ success: true, message: 'Email sent' });
+      // Save sent email to database for admin visibility
+      const sentEmailId = generateUUID();
+      const now = getCurrentTimestamp();
+      try {
+        await c.env.DB.prepare(
+          'INSERT INTO sent_emails (id, address_id, from_address, to_address, subject, body_text, body_html, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        ).bind(sentEmailId, address.id, from, to, subject, text || null, html || null, now).run();
+      } catch (saveError) {
+        // Log but don't fail the send if saving fails
+        console.error('Failed to save sent email record:', saveError);
+      }
+
+      return c.json(successResponse({ message: 'Email sent' }));
     } catch (sendError) {
-      return c.json({ error: 'Failed to send email' }, 500);
+      return c.json(errorResponse('Failed to send email', 500));
     }
   } catch (error) {
-    return c.json({ error: 'Failed to process send request' }, 500);
+    return c.json(errorResponse('Failed to process send request', 500));
   }
 });
 
@@ -251,26 +257,21 @@ emailRoutes.post('/:emailId/mark-read', requireAuth, async (c) => {
   const emailId = c.req.param('emailId');
 
   try {
-    // Verify ownership
-    const email = await c.env.DB.prepare(
-      `SELECT e.id FROM emails e
-       INNER JOIN email_addresses ea ON e.address_id = ea.id
-       WHERE e.id = ? AND ea.user_id = ?`
-    ).bind(emailId, user.id).first();
+    const now = getCurrentTimestamp();
+    const result = await c.env.DB.prepare(
+      `UPDATE emails SET is_read = 1, read_at = ?
+       WHERE id = ? AND address_id IN (
+         SELECT id FROM email_addresses WHERE user_id = ?
+       )`
+    ).bind(now, emailId, user.id).run();
 
-    if (!email) {
-      return c.json({ error: 'Email not found' }, 404);
+    if (result.meta.changes === 0) {
+      return c.json(errorResponse('Email not found', 404));
     }
 
-    // Mark as read
-    const now = getCurrentTimestamp();
-    await c.env.DB.prepare(
-      'UPDATE emails SET is_read = 1, read_at = ? WHERE id = ?'
-    ).bind(now, emailId).run();
-
-    return c.json({ success: true, message: 'Email marked as read' });
+    return c.json(successResponse({ message: 'Email marked as read' }));
   } catch (error) {
-    return c.json({ error: 'Failed to mark email as read' }, 500);
+    return c.json(errorResponse('Failed to mark email as read', 500));
   }
 });
 
@@ -280,24 +281,19 @@ emailRoutes.post('/:emailId/mark-unread', requireAuth, async (c) => {
   const emailId = c.req.param('emailId');
 
   try {
-    // Verify ownership
-    const email = await c.env.DB.prepare(
-      `SELECT e.id FROM emails e
-       INNER JOIN email_addresses ea ON e.address_id = ea.id
-       WHERE e.id = ? AND ea.user_id = ?`
-    ).bind(emailId, user.id).first();
+    const result = await c.env.DB.prepare(
+    `UPDATE emails SET is_read = 0, read_at = NULL
+     WHERE id = ? AND address_id IN (
+       SELECT id FROM email_addresses WHERE user_id = ?
+     )`
+  ).bind(emailId, user.id).run();
 
-    if (!email) {
-      return c.json({ error: 'Email not found' }, 404);
-    }
+  if (result.meta.changes === 0) {
+    return c.json(errorResponse('Email not found', 404));
+  }
 
-    // Mark as unread
-    await c.env.DB.prepare(
-      'UPDATE emails SET is_read = 0, read_at = NULL WHERE id = ?'
-    ).bind(emailId).run();
-
-    return c.json({ success: true, message: 'Email marked as unread' });
+  return c.json(successResponse({ message: 'Email marked as unread' }));
   } catch (error) {
-    return c.json({ error: 'Failed to mark email as unread' }, 500);
+    return c.json(errorResponse('Failed to mark email as unread', 500));
   }
 });

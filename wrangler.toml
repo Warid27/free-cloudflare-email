@@ -3,15 +3,13 @@ main = "src/index.ts"
 compatibility_date = "2024-10-31"
 compatibility_flags = ["nodejs_compat"]
 
-[assets]
-directory = "public"
-binding = "ASSETS"
+# Assets disabled - UI is served inline via TypeScript
 
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
 database_name = "email-system-db"
-database_id = "YOUR_DATABASE_ID" # Replace with your actual database ID after creating
+database_id = "7e3201f2-e651-4555-a129-185290f08853"
 
 # Email routing bindings
 [[send_email]]
@@ -24,4 +22,4 @@ crons = ["0 2 * * *"] # <-- Set your cron expression here
 # Environment variables
 [vars]
 ENVIRONMENT = "development"
-ADMIN_TOKEN = "admin-secret-token-change-this" # Change this to a secure token
+CORS_ORIGINS = "http://localhost:4321,https://al-warid.web.id,https://*.pages.dev"

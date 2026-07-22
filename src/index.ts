@@ -7,12 +7,36 @@ import { emailAddressRoutes } from './routes/emailAddress.js';
 import { emailRoutes } from './routes/email.js';
 import { adminRoutes } from './routes/admin.js';
 import { handleIncomingEmail } from './emailHandler.js';
-import { serveUI } from './ui.js';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
+// Global error handler
+app.onError((err, c) => {
+  console.error(`[ERROR] ${c.req.method} ${c.req.path}:`, err);
+  return c.json({ error: 'Internal server error' }, 500);
+});
+
 // CORS middleware
-app.use('/*', cors());
+app.use('/*', cors({
+  origin: (origin, c) => {
+    const env = c.env as Env;
+    const allowed = env.CORS_ORIGINS?.split(',').map(s => s.trim()) || [];
+    // Allow requests with no origin (e.g. curl, mobile apps)
+    if (!origin) return origin;
+    if (allowed.includes(origin)) return origin;
+    // Check wildcard patterns
+    for (const pattern of allowed) {
+      if (pattern.includes('*')) {
+        const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+        if (regex.test(origin)) return origin;
+      }
+    }
+    return '';
+  },
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
 
 // Health check
 app.get('/health', (c) => {
@@ -39,10 +63,6 @@ app.route('/api/emails', emailRoutes);
 app.route('/api/emails/', emailRoutes);
 app.route('/api/admin', adminRoutes);
 app.route('/api/admin/', adminRoutes);
-
-// UI routes
-app.get('/', serveUI);
-app.get('/*', serveUI);
 
 // Email handler for Cloudflare Email Routing
 async function email(message: any, env: Env, ctx: ExecutionContext): Promise<void> {
