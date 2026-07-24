@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-07-17T02:47:24.3691891Z",
+  "scenario": "create email addresses",
+  "testFile": "E:\\Code\\free-cloudflare-email\\.gherkio\\tests\\email\\create-address.yaml",
+  "failedStepIndex": 1,
+  "failedStepLine": 17,
+  "role": "steps",
+  "error": "assertion 'body.address.address' failed: expected contains(test-inbox@), got test-inbox@your-domain.com",
+  "diagnostics": {
+    "request": {
+      "method": "POST",
+      "url": "http://127.0.0.1:8788/api/addresses",
+      "headers": {
+        "Authorization": "Bearer aa924acedab007532e5438dd8a59e25819a320ae9b08880d343c260ae531aad6"
+      },
+      "body": {
+        "prefix": "test-inbox"
+      }
+    },
+    "response": {
+      "statusCode": 200,
+      "durationMs": 72,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "address": {
+          "address": "test-inbox@your-domain.com",
+          "created_at": 1784256444,
+          "id": "fd30c34c-8136-4188-af05-344a677e734d"
+        },
+        "success": true
+      }
+    },
+    "variableStoreAtFailure": {
+      "accounts": {
+        "alice": {
+          "password": "alicepass",
+          "role": "user",
+          "username": "alice"
+        },
+        "default": {
+          "password": "emilyspass",
+          "role": "user",
+          "username": "emilys"
+        }
+      },
+      "addressId": "fd30c34c-8136-4188-af05-344a677e734d",
+      "randomEmail": "user_244385@example.com",
+      "randomInt": 600844,
+      "randomPhone": "+628091513478",
+      "token": "***masked***",
+      "ulid": "06FPVY5QH0CFEZDT38CDQ0RHDG",
+      "uuid": "eac99550-de76-4052-aa3a-b0fc69c3cb9f"
+    }
+  }
+}

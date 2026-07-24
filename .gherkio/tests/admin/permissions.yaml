@@ -1,0 +1,134 @@
+scenario: admin send permission management
+
+steps:
+  # Register a user and create an address
+  - request:
+      method: POST
+      url: /api/user/register
+
+    expect:
+      status: 200
+
+    save:
+      userToken: body.user.token
+
+  - request:
+      method: POST
+      url: /api/addresses
+      headers:
+        Authorization: Bearer $userToken
+
+    expect:
+      status: 200
+
+    save:
+      addressId: body.address.id
+
+  # Request send permission
+  - request:
+      method: POST
+      url: /api/emails/address/$addressId/request-send
+      headers:
+        Authorization: Bearer $userToken
+
+    expect:
+      status: 200
+      body.success: true
+      body.permission.status: pending
+
+    save:
+      permissionId: body.permission.id
+
+  # Get pending permissions (admin)
+  - request:
+      method: GET
+      url: /api/admin/permissions/pending
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+
+  # Approve the permission (admin)
+  - request:
+      method: POST
+      url: /api/admin/permissions/$permissionId/approve
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.success: true
+      body.message: Permission approved
+
+  # Verify permission is approved by checking email list
+  - request:
+      method: GET
+      url: /api/emails/address/$addressId
+      headers:
+        Authorization: Bearer $userToken
+
+    expect:
+      status: 200
+      body.send_permission_status: approved
+
+  # Request again (should show already exists)
+  - request:
+      method: POST
+      url: /api/emails/address/$addressId/request-send
+      headers:
+        Authorization: Bearer $userToken
+
+    expect:
+      status: 200
+      body.message: Request already exists
+
+  # Create a second address and request then reject permission
+  - request:
+      method: POST
+      url: /api/addresses
+      headers:
+        Authorization: Bearer $userToken
+
+    expect:
+      status: 200
+
+    save:
+      addressId2: body.address.id
+
+  - request:
+      method: POST
+      url: /api/emails/address/$addressId2/request-send
+      headers:
+        Authorization: Bearer $userToken
+
+    expect:
+      status: 200
+      body.success: true
+      body.permission.status: pending
+
+    save:
+      permissionId2: body.permission.id
+
+  # Reject the second permission
+  - request:
+      method: POST
+      url: /api/admin/permissions/$permissionId2/reject
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.success: true
+      body.message: Permission rejected
+
+  # Verify rejected status via email list
+  - request:
+      method: GET
+      url: /api/emails/address/$addressId2
+      headers:
+        Authorization: Bearer $userToken
+
+    expect:
+      status: 200
+      body.send_permission_status: rejected

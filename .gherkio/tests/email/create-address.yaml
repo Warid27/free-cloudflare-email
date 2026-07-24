@@ -1,0 +1,56 @@
+scenario: create email addresses
+
+steps:
+  # First register a new user (fresh each time for isolation)
+  - request:
+      method: POST
+      url: /api/user/register
+
+    expect:
+      status: 200
+      body.success: true
+
+    save:
+      token: body.user.token
+
+  # Create email with random prefix (no body = random generation)
+  - request:
+      method: POST
+      url: /api/addresses
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+      body.success: true
+      body.address.id: exists
+      body.address.address: exists
+      body.address.created_at: exists
+
+    save:
+      addressId: body.address.id
+      addressStr: body.address.address
+
+  # Verify the address appears in the list
+  - request:
+      method: GET
+      url: /api/addresses
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+      body.addresses: exists
+
+  # Try creating address with invalid prefix (should fail with 400)
+  - request:
+      method: POST
+      url: /api/addresses
+      headers:
+        Authorization: Bearer $token
+      body:
+        prefix: "invalid prefix with spaces!!"
+
+    expect:
+      status: 400
+      body.error: exists

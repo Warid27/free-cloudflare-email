@@ -1,0 +1,58 @@
+scenario: delete email
+
+steps:
+  # Register user
+  - request:
+      method: POST
+      url: /api/user/register
+
+    expect:
+      status: 200
+      body.success: true
+
+    save:
+      token: body.user.token
+
+  # Create address
+  - request:
+      method: POST
+      url: /api/addresses
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+
+    save:
+      addressId: body.address.id
+
+  # Get emails (should be empty)
+  - request:
+      method: GET
+      url: /api/emails?address_id=$addressId
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+      body.emails: exists
+
+  # Try to delete non-existent email (should 404)
+  - request:
+      method: DELETE
+      url: /api/emails/non-existent-id
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 404
+      body.error: exists
+
+  # Try to delete without auth (should 401)
+  - request:
+      method: DELETE
+      url: /api/emails/some-id
+
+    expect:
+      status: 401
+      body.error: exists

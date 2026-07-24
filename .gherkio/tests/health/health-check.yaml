@@ -1,0 +1,11 @@
+scenario: health check
+
+steps:
+  - request:
+      method: GET
+      url: /health
+
+    expect:
+      status: 200
+      body.status: ok
+      body.timestamp: exists

@@ -7,6 +7,7 @@ import { emailAddressRoutes } from './routes/emailAddress.js';
 import { emailRoutes } from './routes/email.js';
 import { adminRoutes } from './routes/admin.js';
 import { handleIncomingEmail } from './emailHandler.js';
+import { serveUI } from './ui.js';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -37,6 +38,12 @@ app.use('/*', cors({
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
+
+// UI Pages (login, dashboard, admin)
+app.get('/', serveUI);
+app.get('/login', serveUI);
+app.get('/dashboard', serveUI);
+app.get('/admin', serveUI);
 
 // Health check
 app.get('/health', (c) => {

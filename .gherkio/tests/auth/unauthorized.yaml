@@ -1,0 +1,61 @@
+scenario: unauthorized access tests
+
+steps:
+  # Access without token (should 401)
+  - request:
+      method: GET
+      url: /api/user/me
+
+    expect:
+      status: 401
+      body.error: exists
+
+  # Access with invalid token (should 401)
+  - request:
+      method: GET
+      url: /api/user/me
+      headers:
+        Authorization: Bearer invalid-token-12345
+
+    expect:
+      status: 401
+      body.error: exists
+
+  # Access addresses without token (should 401)
+  - request:
+      method: GET
+      url: /api/addresses
+
+    expect:
+      status: 401
+      body.error: exists
+
+  # Access emails without token (should 401)
+  - request:
+      method: GET
+      url: /api/emails
+
+    expect:
+      status: 401
+      body.error: exists
+
+  # Access admin endpoint as non-admin (should 403)
+  - request:
+      method: POST
+      url: /api/user/register
+
+    expect:
+      status: 200
+
+    save:
+      token: body.user.token
+
+  - request:
+      method: GET
+      url: /api/admin/users
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 403
+      body.error: exists

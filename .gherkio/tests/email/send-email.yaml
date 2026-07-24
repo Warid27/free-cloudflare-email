@@ -1,0 +1,157 @@
+scenario: send email permission and access control
+
+steps:
+  # Register a user
+  - request:
+      method: POST
+      url: /api/user/register
+
+    expect:
+      status: 200
+      body.success: true
+
+    save:
+      token: body.user.token
+
+  # Create an email address
+  - request:
+      method: POST
+      url: /api/addresses
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+      body.success: true
+
+    save:
+      addressId: body.address.id
+      fromAddress: body.address.address
+
+  # Try to send without permission (should 403)
+  - request:
+      method: POST
+      url: /api/emails/send
+      headers:
+        Authorization: Bearer $token
+        Content-Type: application/json
+      body:
+        from: $fromAddress
+        to: recipient@example.com
+        subject: Test email
+        text: Hello from test
+        html: <p>Hello from test</p>
+
+    expect:
+      status: 403
+      body.error: exists
+
+  # Try to send from unauthorized address (should 404)
+  - request:
+      method: POST
+      url: /api/emails/send
+      headers:
+        Authorization: Bearer $token
+        Content-Type: application/json
+      body:
+        from: unauthorized@other-domain.com
+        to: recipient@example.com
+        subject: Test email
+        text: Hello
+
+    expect:
+      status: 404
+      body.error: exists
+
+  # Request send permission
+  - request:
+      method: POST
+      url: /api/emails/address/$addressId/request-send
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+      body.success: true
+      body.permission.status: pending
+
+    save:
+      permissionId: body.permission.id
+
+  # Try to send with pending permission (should still 403)
+  - request:
+      method: POST
+      url: /api/emails/send
+      headers:
+        Authorization: Bearer $token
+        Content-Type: application/json
+      body:
+        from: $fromAddress
+        to: recipient@example.com
+        subject: Test email
+        text: Hello
+
+    expect:
+      status: 403
+      body.error: exists
+
+  # Approve the permission (admin)
+  - request:
+      method: POST
+      url: /api/admin/permissions/$permissionId/approve
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.success: true
+
+  # Now try to send with approved permission
+  # Note: In local dev, this may fail with 500 if SendEmail binding isn't configured
+  # The important thing is it gets past the 403 permission check
+  - request:
+      method: POST
+      url: /api/emails/send
+      headers:
+        Authorization: Bearer $token
+        Content-Type: application/json
+      body:
+        from: $fromAddress
+        to: recipient@example.com
+        subject: Test email from Gherkio
+        text: This is a test email sent via Gherkio
+        html: <p>This is a test email sent via <strong>Gherkio</strong></p>
+
+    expect:
+      status: 200
+      body.success: true
+
+  # Try to send without authentication (should 401)
+  - request:
+      method: POST
+      url: /api/emails/send
+      headers:
+        Content-Type: application/json
+      body:
+        from: $fromAddress
+        to: recipient@example.com
+        subject: Test
+        text: Hello
+
+    expect:
+      status: 401
+      body.error: exists
+
+  # Try to send without required fields (should fail)
+  - request:
+      method: POST
+      url: /api/emails/send
+      headers:
+        Authorization: Bearer $token
+        Content-Type: application/json
+      body:
+        from: $fromAddress
+
+    expect:
+      status: 500
+      body.error: exists

@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-07-17T02:51:50.0629292Z",
+  "scenario": "login as alice via $accounts variable",
+  "testFile": "E:\\Code\\free-cloudflare-email\\.gherkio\\tests\\example\\accounts\\login-as-alice.yaml",
+  "failedStepIndex": 0,
+  "failedStepLine": 4,
+  "role": "steps",
+  "error": "assertion 'status' failed: expected 200, got 404; assertion 'body.refreshToken' failed: expected exists, got (not found); assertion 'body.email' failed: expected email, got (not found); assertion 'schema' failed: field body: expected type object, got number (expected: example/login-response, actual: field body: expected type object, got number); assertion 'body.accessToken' failed: expected exists, got (not found)",
+  "diagnostics": {
+    "request": {
+      "method": "POST",
+      "url": "http://127.0.0.1:8788/auth/login",
+      "headers": {},
+      "body": {
+        "expiresInMins": 30,
+        "password": "***masked***",
+        "username": "alice"
+      }
+    },
+    "response": {
+      "statusCode": 404,
+      "durationMs": 8,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "text/plain; charset=UTF-8"
+      },
+      "body": "404 Not Found"
+    },
+    "variableStoreAtFailure": {
+      "accounts": {
+        "alice": {
+          "password": "alicepass",
+          "role": "user",
+          "username": "alice"
+        },
+        "default": {
+          "password": "emilyspass",
+          "role": "user",
+          "username": "emilys"
+        }
+      },
+      "randomEmail": "user_242932@example.com",
+      "randomInt": 352491,
+      "randomPhone": "+628950502257",
+      "ulid": "06FPVZ65MM1Z3MJEMN0K0JAJ8Y",
+      "uuid": "d8d8e6f0-5cf5-47da-bb89-bfe1cd771b86"
+    }
+  }
+}

@@ -6,3 +6,8 @@ dist
 *.log
 .DS_Store
 wrangler-prod.toml
+nul
+.gherkio/credentials/
+scripts/add-sent-emails-section.js
+.sdd/
+specs/

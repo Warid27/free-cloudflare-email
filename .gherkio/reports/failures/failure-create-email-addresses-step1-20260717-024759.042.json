@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-07-17T02:47:59.0420821Z",
+  "scenario": "create email addresses",
+  "testFile": "E:\\Code\\free-cloudflare-email\\.gherkio\\tests\\email\\create-address.yaml",
+  "failedStepIndex": 1,
+  "failedStepLine": 17,
+  "role": "steps",
+  "error": "assertion 'status' failed: expected 200, got 409; assertion 'body.address.id' failed: expected exists, got (not found); assertion 'body.address.address' failed: expected exists, got (not found); assertion 'body.address.created_at' failed: expected exists, got (not found); assertion 'body.success' failed: expected true, got (not found)",
+  "diagnostics": {
+    "request": {
+      "method": "POST",
+      "url": "http://127.0.0.1:8788/api/addresses",
+      "headers": {
+        "Authorization": "Bearer ae84c497e390c581cd4fdb4e2749d91e486abf5f5c99dcfe72ede80447d05866"
+      },
+      "body": {
+        "prefix": "test-inbox"
+      }
+    },
+    "response": {
+      "statusCode": 409,
+      "durationMs": 24,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "error": "Email address already exists"
+      }
+    },
+    "variableStoreAtFailure": {
+      "accounts": {
+        "alice": {
+          "password": "alicepass",
+          "role": "user",
+          "username": "alice"
+        },
+        "default": {
+          "password": "emilyspass",
+          "role": "user",
+          "username": "emilys"
+        }
+      },
+      "randomEmail": "user_654830@example.com",
+      "randomInt": 501051,
+      "randomPhone": "+628000353283",
+      "token": "***masked***",
+      "ulid": "06FPVY9Z54SYND22RZF4MPBKPE",
+      "uuid": "2d85d114-a689-4f37-a319-e376e2f545c7"
+    }
+  }
+}

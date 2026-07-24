@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-07-17T02:51:50.0739303Z",
+  "scenario": "using built-in generator variables",
+  "testFile": "E:\\Code\\free-cloudflare-email\\.gherkio\\tests\\example\\builtins\\login-with-generators.yaml",
+  "failedStepIndex": 0,
+  "failedStepLine": 4,
+  "role": "steps",
+  "error": "assertion 'status' failed: expected 200, got 404; assertion 'schema' failed: field body: expected type object, got number (expected: example/login-response, actual: field body: expected type object, got number); assertion 'body.accessToken' failed: expected exists, got (not found); assertion 'body.refreshToken' failed: expected exists, got (not found)",
+  "diagnostics": {
+    "request": {
+      "method": "POST",
+      "url": "http://127.0.0.1:8788/auth/login",
+      "headers": {},
+      "body": {
+        "email": "user_174761@example.com",
+        "expiresInMins": 30,
+        "idempotencyKey": "51256f48-c83b-4da5-935d-264b44b2c331",
+        "otpCode": 684266,
+        "password": "***masked***",
+        "phone": "+628970692160",
+        "requestId": "06FPVZ65Q40278DV99QJRPB4CG",
+        "username": "alice"
+      }
+    },
+    "response": {
+      "statusCode": 404,
+      "durationMs": 6,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "text/plain; charset=UTF-8"
+      },
+      "body": "404 Not Found"
+    },
+    "variableStoreAtFailure": {
+      "accounts": {
+        "alice": {
+          "password": "alicepass",
+          "role": "user",
+          "username": "alice"
+        },
+        "default": {
+          "password": "emilyspass",
+          "role": "user",
+          "username": "emilys"
+        }
+      },
+      "randomEmail": "user_174761@example.com",
+      "randomInt": 684266,
+      "randomPhone": "+628970692160",
+      "ulid": "06FPVZ65Q40278DV99QJRPB4CG",
+      "uuid": "51256f48-c83b-4da5-935d-264b44b2c331"
+    }
+  }
+}

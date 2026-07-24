@@ -1,0 +1,15 @@
+scenario: admin login and get user info
+
+steps:
+  - request:
+      method: GET
+      url: /api/user/me
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.id: admin
+      body.is_admin: 1
+      body.is_banned: 0
+      body.created_at: exists

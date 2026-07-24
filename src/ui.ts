@@ -24,257 +24,198 @@ function getSharedHead(title: string) {
     <title>${title}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/favicon.png">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #ec4899;
-            --accent: #8b5cf6;
-            --background: #0f172a;
-            --surface: rgba(30, 41, 59, 0.7);
-            --surface-light: rgba(51, 65, 85, 0.5);
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: rgba(148, 163, 184, 0.1);
-            --success: #10b981;
-            --error: #ef4444;
-            --radius: 16px;
-            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            --glow: 0 0 20px rgba(99, 102, 241, 0.3);
+            --jp-bg: #F7F3EE;
+            --jp-bg-warm: #EDE8E1;
+            --jp-surface: #FDFCFB;
+            --jp-surface-hover: #F5F1EB;
+            --jp-sidebar: #2B2520;
+            --jp-sidebar-hover: #3D3630;
+            --jp-sidebar-active: #4A4238;
+            --jp-text: #2B2520;
+            --jp-text-secondary: #7A7168;
+            --jp-text-light: #A69D94;
+            --jp-text-inverse: #F7F3EE;
+            --jp-border: #E5DDD4;
+            --jp-border-light: #EDE8E1;
+            --jp-accent: #8B7355;
+            --jp-accent-warm: #A68B6B;
+            --jp-sage: #7C8C6E;
+            --jp-sage-light: #E8EDE4;
+            --jp-terracotta: #C17B5C;
+            --jp-terracotta-light: #F5E6DE;
+            --jp-brass: #B89B6A;
+            --jp-brass-light: #F2EBDB;
+            --jp-danger: #B85C5C;
+            --jp-danger-light: #F5E0E0;
+            --jp-radius: 10px;
+            --jp-radius-lg: 16px;
+            --jp-shadow: 0 1px 3px rgba(43, 37, 32, 0.06);
+            --jp-shadow-md: 0 4px 12px rgba(43, 37, 32, 0.08);
+            --jp-shadow-lg: 0 8px 24px rgba(43, 37, 32, 0.1);
+            --jp-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Backward compat aliases for JS-generated HTML */
+            --text: #2B2520;
+            --text-muted: #7A7168;
+            --border: #E5DDD4;
+            --primary: #8B7355;
+            --secondary: #7C8C6E;
+            --accent: #B89B6A;
+            --success: #7C8C6E;
+            --error: #B85C5C;
+            --surface: #FDFCFB;
+            --surface-light: #F5F1EB;
+            --background: #F7F3EE;
+            --radius: 10px;
+            --shadow: 0 1px 3px rgba(43, 37, 32, 0.06);
+            --glow: none;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--background);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.15) 0px, transparent 50%);
-            background-attachment: fixed;
-            color: var(--text);
+            font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--jp-bg);
+            color: var(--jp-text);
             min-height: 100vh;
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--surface-light);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-muted);
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--jp-border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--jp-text-light); }
 
-        /* Utility Classes */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
 
         .glass {
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
+            background: var(--jp-surface);
+            border: 1px solid var(--jp-border-light);
+            border-radius: var(--jp-radius-lg);
+            box-shadow: var(--jp-shadow);
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.75rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: var(--jp-radius);
+            font-weight: 500;
+            font-size: 0.8125rem;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: none;
-            font-size: 0.95rem;
+            transition: all var(--jp-transition);
+            border: 1px solid transparent;
             text-decoration: none;
             gap: 0.5rem;
+            font-family: inherit;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: var(--jp-accent);
             color: white;
-            box-shadow: var(--glow);
         }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
-        }
+        .btn-primary:hover { background: var(--jp-accent-warm); transform: translateY(-1px); box-shadow: var(--jp-shadow-md); }
 
         .btn-secondary {
-            background: var(--surface-light);
-            color: var(--text);
-            border: 1px solid var(--border);
+            background: var(--jp-surface);
+            color: var(--jp-text-secondary);
+            border-color: var(--jp-border);
         }
+        .btn-secondary:hover { background: var(--jp-surface-hover); color: var(--jp-text); }
 
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-        
         .btn-danger {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: var(--jp-danger-light);
+            color: var(--jp-danger);
         }
-        
-        .btn-danger:hover {
-            background: rgba(239, 68, 68, 0.3);
-            color: #fff;
-        }
+        .btn-danger:hover { background: var(--jp-danger); color: white; }
 
-        .input-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        /* Mobile Navigation */
+        .input-group { margin-bottom: 1.5rem; }
+
         .mobile-nav {
             display: none;
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid var(--border);
-            padding: 0.75rem 1.5rem;
+            background: var(--jp-surface);
+            border-top: 1px solid var(--jp-border-light);
+            padding: 0.5rem 1rem;
             justify-content: space-around;
             z-index: 100;
-            padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+            padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
         }
-        
+
         .mobile-nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 0.25rem;
-            color: var(--text-muted);
+            color: var(--jp-text-light);
             text-decoration: none;
-            font-size: 0.75rem;
-            font-weight: 500;
-            transition: all 0.2s;
+            font-size: 0.6875rem;
+            font-weight: 450;
+            transition: color var(--jp-transition);
+            padding: 0.25rem 0.5rem;
         }
-        
-        .mobile-nav-item svg {
-            width: 24px;
-            height: 24px;
-        }
-        
-        .mobile-nav-item.active {
-            color: var(--primary);
-        }
+        .mobile-nav-item svg { width: 22px; height: 22px; }
+        .mobile-nav-item.active { color: var(--jp-accent); }
 
         label {
             display: block;
             margin-bottom: 0.5rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+            color: var(--jp-text-secondary);
+            font-size: 0.8125rem;
             font-weight: 500;
         }
 
         input, select, textarea {
             width: 100%;
-            padding: 0.875rem 1rem;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: var(--text);
+            padding: 0.625rem 0.875rem;
+            background: var(--jp-surface);
+            border: 1px solid var(--jp-border);
+            border-radius: var(--jp-radius);
+            color: var(--jp-text);
             font-family: inherit;
-            font-size: 1rem;
-            transition: all 0.2s;
+            font-size: 0.875rem;
+            transition: all var(--jp-transition);
         }
-
+        input::placeholder, textarea::placeholder { color: var(--jp-text-light); }
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-            background: rgba(15, 23, 42, 0.8);
+            border-color: var(--jp-accent);
+            box-shadow: 0 0 0 3px rgba(139, 115, 85, 0.1);
         }
 
-        .fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Toast/Message */
         .message {
-            padding: 1rem;
-            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            border-radius: var(--jp-radius);
             margin-bottom: 1.5rem;
             display: none;
             font-weight: 500;
-            animation: slideDown 0.3s ease;
+            font-size: 0.8125rem;
+            animation: fadeIn 0.3s ease;
         }
-        
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message.success {
-            background: rgba(16, 185, 129, 0.2);
-            color: #6ee7b7;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .message.error {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
+        .message.success { background: var(--jp-sage-light); color: var(--jp-sage); }
+        .message.error { background: var(--jp-danger-light); color: var(--jp-danger); }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            h1 {
-                font-size: 1.75rem;
-            }
-            
-            .mobile-nav {
-                display: flex;
-            }
-            
-            body {
-                padding-bottom: 80px; /* Space for mobile nav */
-            }
+            .container { padding: 1rem; }
+            h1 { font-size: 1.75rem; }
+            .mobile-nav { display: flex; }
+            body { padding-bottom: 72px; }
         }
 
-        .rotating {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        .rotating { animation: spin 0.8s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
   `;
 }
@@ -870,7 +811,7 @@ function getDashboardPage() {
                     <h2 style="margin-bottom: 1.5rem;">Send Email</h2>
                     <form onsubmit="handleSendEmail(event)">
                         <div class="input-group">
-                            <label>From</label>
+                            <label for="send-from">From</label>
                             <select id="send-from" required>
                                 <option value="">Select an address...</option>
                             </select>
@@ -879,15 +820,15 @@ function getDashboardPage() {
                             </p>
                         </div>
                         <div class="input-group">
-                            <label>To</label>
+                            <label for="send-to">To</label>
                             <input type="email" id="send-to" placeholder="recipient@example.com" required>
                         </div>
                         <div class="input-group">
-                            <label>Subject</label>
+                            <label for="send-subject">Subject</label>
                             <input type="text" id="send-subject" placeholder="Email subject" required>
                         </div>
                         <div class="input-group">
-                            <label>Message</label>
+                            <label for="send-body">Message</label>
                             <textarea id="send-body" style="min-height: 200px;" placeholder="Write your message here..." required></textarea>
                         </div>
                         <div style="display: flex; justify-content: flex-end;">
@@ -908,7 +849,7 @@ function getDashboardPage() {
             <h2 style="margin-bottom: 1.5rem;">Create New Address</h2>
             <form onsubmit="handleCreateAddress(event)">
                 <div class="input-group">
-                    <label>Address Prefix</label>
+                    <label for="new-prefix">Address Prefix</label>
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         <input type="text" id="new-prefix" placeholder="e.g., contact" required pattern="[a-z0-9-]+" title="Lowercase letters, numbers, and hyphens only">
                         <span style="color: var(--text-muted);">@<span id="domain-suffix">...</span></span>
@@ -1037,7 +978,7 @@ function getDashboardPage() {
                     div.innerHTML = \`
                         <div>
                             <div style="font-weight: 600; font-size: 1.1rem;">\${addr.address}</div>
-                            <div style="font-size: 0.85rem; color: var(--text-muted);">Created: \${new Date(addr.created_at).toLocaleDateString()}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Created: \${new Date(addr.created_at * 1000).toLocaleDateString()}</div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 1rem;">
                             \${!addr.send_permission_status ? \`
@@ -1347,162 +1288,597 @@ function getDashboardPage() {
 
 // --- Admin Page ---
 
+function getAdminHead(title: string) {
+    return `
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/favicon.png">
+  `;
+}
 
 function getAdminPage() {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    ${getSharedHead('Admin - Webmail')}
+    ${getAdminHead('Admin - Webmail')}
     <style>
-        .app-layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
-        .sidebar { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px); border-right: 1px solid var(--border); padding: 2rem; display: flex; flex-direction: column; height: 100vh; position: sticky; top: 0; z-index: 50; }
-        .main-content { padding: 2rem; overflow-y: auto; width: 100%; max-width: 100vw; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem; }
-        
-        /* Navigation */
-        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 8px; margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s; }
-        .nav-item:hover, .nav-item.active { background: var(--surface-light); color: white; }
-        .nav-item svg { width: 20px; height: 20px; }
+        :root {
+            --jp-bg: #F7F3EE;
+            --jp-bg-warm: #EDE8E1;
+            --jp-surface: #FDFCFB;
+            --jp-surface-hover: #F5F1EB;
+            --jp-sidebar: #2B2520;
+            --jp-sidebar-hover: #3D3630;
+            --jp-sidebar-active: #4A4238;
+            --jp-text: #2B2520;
+            --jp-text-secondary: #7A7168;
+            --jp-text-light: #A69D94;
+            --jp-text-inverse: #F7F3EE;
+            --jp-border: #E5DDD4;
+            --jp-border-light: #EDE8E1;
+            --jp-accent: #8B7355;
+            --jp-accent-warm: #A68B6B;
+            --jp-sage: #7C8C6E;
+            --jp-sage-light: #E8EDE4;
+            --jp-terracotta: #C17B5C;
+            --jp-terracotta-light: #F5E6DE;
+            --jp-brass: #B89B6A;
+            --jp-brass-light: #F2EBDB;
+            --jp-danger: #B85C5C;
+            --jp-danger-light: #F5E0E0;
+            --jp-radius: 10px;
+            --jp-radius-lg: 16px;
+            --jp-shadow: 0 1px 3px rgba(43, 37, 32, 0.06);
+            --jp-shadow-md: 0 4px 12px rgba(43, 37, 32, 0.08);
+            --jp-shadow-lg: 0 8px 24px rgba(43, 37, 32, 0.1);
+            --jp-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Backward compat aliases for JS-generated HTML */
+            --text: #2B2520;
+            --text-muted: #7A7168;
+            --border: #E5DDD4;
+            --primary: #8B7355;
+            --secondary: #7C8C6E;
+            --accent: #B89B6A;
+            --success: #7C8C6E;
+            --error: #B85C5C;
+            --surface: #FDFCFB;
+            --surface-light: #F5F1EB;
+            --background: #F7F3EE;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--jp-bg);
+            color: var(--jp-text);
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--jp-border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--jp-text-light); }
+
+        /* Layout */
+        .app-layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+
+        .sidebar {
+            background: var(--jp-sidebar);
+            padding: 2rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .sidebar-logo {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--jp-text-inverse);
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            letter-spacing: -0.02em;
+        }
+
+        .sidebar-logo svg { opacity: 0.9; }
+
+        .sidebar-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(247, 243, 238, 0.35);
+            padding: 0 0.75rem;
+            margin-bottom: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 0.75rem;
+            color: rgba(247, 243, 238, 0.6);
+            text-decoration: none;
+            border-radius: var(--jp-radius);
+            margin-bottom: 2px;
+            cursor: pointer;
+            transition: all var(--jp-transition);
+            font-size: 0.875rem;
+            font-weight: 450;
+        }
+
+        .nav-item:hover { background: var(--jp-sidebar-hover); color: var(--jp-text-inverse); }
+        .nav-item.active { background: var(--jp-sidebar-active); color: var(--jp-text-inverse); font-weight: 500; }
+        .nav-item svg { width: 18px; height: 18px; opacity: 0.8; flex-shrink: 0; }
+        .nav-item.active svg { opacity: 1; }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(247, 243, 238, 0.08);
+        }
+
+        .sidebar-footer .nav-item { color: rgba(247, 243, 238, 0.4); font-size: 0.8125rem; }
+        .sidebar-footer .nav-item:hover { color: rgba(247, 243, 238, 0.7); }
+
+        .main-content { padding: 2rem 2.5rem; overflow-y: auto; width: 100%; max-width: 100vw; }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--jp-text);
+            letter-spacing: -0.025em;
+        }
+
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.875rem;
+            background: var(--jp-sage-light);
+            color: var(--jp-sage);
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+        }
+
+        .admin-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--jp-surface);
+            border: 1px solid var(--jp-border-light);
+            border-radius: var(--jp-radius-lg);
+            box-shadow: var(--jp-shadow);
+            transition: box-shadow var(--jp-transition);
+        }
+
+        .card:hover { box-shadow: var(--jp-shadow-md); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--jp-accent);
+            opacity: 0;
+            transition: opacity var(--jp-transition);
+        }
+
+        .stat-card:hover::after { opacity: 1; }
+        .stat-card:nth-child(2)::after { background: var(--jp-sage); }
+        .stat-card:nth-child(3)::after { background: var(--jp-terracotta); }
+        .stat-card:nth-child(4)::after { background: var(--jp-brass); }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--jp-text-light);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--jp-text);
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
 
         /* Tables */
-        .table-container { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background: rgba(255,255,255,0.02); color: var(--text-muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover { background: rgba(255,255,255,0.02); }
+        .table-container { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8125rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: var(--jp-text-light);
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--jp-border);
+            background: var(--jp-bg-warm);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--jp-border-light);
+            color: var(--jp-text-secondary);
+        }
+
+        tr:hover td { background: var(--jp-surface-hover); }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.625rem;
+            border-radius: 100px;
+            font-size: 0.6875rem;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+        }
+
+        .badge-success { background: var(--jp-sage-light); color: var(--jp-sage); }
+        .badge-warning { background: var(--jp-brass-light); color: #8B7355; }
+        .badge-danger { background: var(--jp-danger-light); color: var(--jp-danger); }
+        .badge-info { background: #E8EAF0; color: #5A6577; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--jp-radius);
+            font-weight: 500;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all var(--jp-transition);
+            border: 1px solid transparent;
+            text-decoration: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--jp-accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--jp-accent-warm);
+            transform: translateY(-1px);
+            box-shadow: var(--jp-shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--jp-surface);
+            color: var(--jp-text-secondary);
+            border-color: var(--jp-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--jp-surface-hover);
+            color: var(--jp-text);
+        }
+
+        .btn-danger {
+            background: var(--jp-danger-light);
+            color: var(--jp-danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--jp-danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
 
         /* Forms */
         .form-group { margin-bottom: 1.5rem; }
-        .form-label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
-        .form-input { width: 100%; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border); padding: 0.75rem; border-radius: 8px; color: white; font-family: inherit; }
-        .form-input:focus { outline: none; border-color: var(--primary); }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--jp-text-secondary);
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            background: var(--jp-surface);
+            border: 1px solid var(--jp-border);
+            border-radius: var(--jp-radius);
+            color: var(--jp-text);
+            font-family: inherit;
+            font-size: 0.875rem;
+            transition: all var(--jp-transition);
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--jp-accent);
+            box-shadow: 0 0 0 3px rgba(139, 115, 85, 0.1);
+        }
+        .form-input::placeholder { color: var(--jp-text-light); }
 
-        /* Badges & Buttons */
-        .badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-        .badge-success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-        .badge-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-        .badge-danger { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-        
-        .btn-sm { padding: 0.25rem 0.75rem; font-size: 0.85rem; }
-        .btn-danger { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .btn-danger:hover { background: rgba(239, 68, 68, 0.3); }
+        /* Section */
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.3s ease-out; }
 
-        /* Mobile Elements */
-        .menu-btn { display: none; background: none; border: none; color: white; cursor: pointer; padding: 0.5rem; margin-left: -0.5rem; }
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(4px); }
-        .overlay.open { opacity: 1; pointer-events: auto; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Sections */
-        .section { display: none; animation: fadeIn 0.3s ease; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(43, 37, 32, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
 
+        .modal.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 650px;
+            max-height: 85vh;
+            overflow-y: auto;
+            background: var(--jp-surface);
+            border: 1px solid var(--jp-border-light);
+            border-radius: var(--jp-radius-lg);
+            box-shadow: var(--jp-shadow-lg);
+            transform: translateY(8px) scale(0.98);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal.open .modal-content {
+            transform: translateY(0) scale(1);
+        }
+
+        /* Rotating animation */
+        .rotating { animation: spin 0.8s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--jp-text-light);
+            font-size: 0.875rem;
+        }
+
+        .empty-state svg {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        /* Responsive */
         @media (max-width: 1024px) {
             .app-layout { grid-template-columns: 1fr; }
-            .sidebar { position: fixed; left: -280px; top: 0; bottom: 0; width: 280px; background: #0f172a; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-right: 1px solid var(--border); }
-            .sidebar.open { transform: translateX(280px); }
+            .sidebar { display: none; position: fixed; width: 280px; height: 100vh; z-index: 100; }
+            .sidebar.open { display: flex; }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.4);
+                z-index: 99;
+            }
+            .sidebar-overlay.open { display: block; }
+            .main-content { padding: 1.5rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .header { flex-wrap: wrap; }
+        }
+
+        /* Mobile elements */
+        .menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            color: var(--jp-text);
+            border-radius: var(--jp-radius);
+            transition: background var(--jp-transition);
+        }
+        .menu-btn:hover { background: var(--jp-bg-warm); }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 90;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @media (max-width: 768px) {
+            .app-layout { grid-template-columns: 1fr; }
+            .sidebar {
+                display: none;
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 280px;
+                height: 100vh;
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 95;
+            }
+            .sidebar.open { display: flex; transform: translateX(0); }
             .menu-btn { display: block; }
             .main-content { padding: 1.5rem; }
+            .stats-grid { grid-template-columns: 1fr; }
         }
-    </style>
-</head>
+    </style></head>
 <body>
     <div class="overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <div class="app-layout">
         <aside class="sidebar" id="sidebar">
-            <div style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 3rem; display: flex; align-items: center; gap: 0.75rem;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="shield_grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#6366f1" />
-                            <stop offset="1" stop-color="#ec4899" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M12 2L3 7V12C3 17.52 6.84 22.74 12 24C17.16 22.74 21 17.52 21 12V7L12 2Z" fill="url(#shield_grad)"/>
-                    <path d="M17 10H7C6.45 10 6 10.45 6 11V15C6 15.55 6.45 16 7 16H17C17.55 16 18 15.55 18 15V11C18 10.45 17.55 10 17 10Z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-                    <path d="M7 11L12 14L17 11" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <div class="sidebar-logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 2L3 7V12C3 17.52 6.84 22.74 12 24C17.16 22.74 21 17.52 21 12V7L12 2Z" fill="rgba(247,243,238,0.1)"/>
+                    <path d="M8 12L11 15L16 9" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 Admin Panel
             </div>
-            
-            <nav style="margin-bottom: auto;">
+
+            <div class="sidebar-label">Navigation</div>
+            <nav>
                  <a class="nav-item active" onclick="switchSection('overview')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     Overview
                 </a>
                 <a class="nav-item" onclick="switchSection('users')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     Users
                 </a>
-                <a class="nav-item" onclick="switchSection('emails')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                    Emails
+                <a class="nav-item" onclick="switchSection('inbox')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    Inbox
                 </a>
                 <a class="nav-item" onclick="switchSection('permissions')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     Permissions
                 </a>
+                <a class="nav-item" onclick="switchSection('bulk-generate')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    Bulk Generate
+                </a>
                 <a class="nav-item" onclick="switchSection('settings')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     Settings
                 </a>
             </nav>
 
-            <button onclick="logout()" class="btn btn-secondary" style="width: 100%;">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                Logout
-            </button>
+            <div class="sidebar-footer">
+                <a class="nav-item" onclick="logout()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Sign Out
+                </a>
+            </div>
         </aside>
 
         <main class="main-content">
             <div class="header">
-                <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
                     <button class="menu-btn" onclick="toggleSidebar()">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
-                    <h2 id="page-title">System Overview</h2>
+                    <h1 class="page-title" id="page-title">Overview</h1>
                 </div>
-                <div class="badge badge-active" style="font-size: 0.9rem;">Admin Mode</div>
+                <div class="admin-badge">Admin</div>
             </div>
 
             <!-- Overview Section -->
             <div id="overview" class="section active">
-                <div class="glass" style="padding: 2rem; margin-bottom: 2rem;">
-                    <h3>Statistics</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
-                        <div style="text-align: center; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px;">
-                            <div id="total-users" style="font-size: 2rem; font-weight: 700; color: var(--primary);">0</div>
-                            <div style="color: var(--text-muted);">Total Users</div>
-                        </div>
-                        <div style="text-align: center; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px;">
-                            <div id="total-addresses" style="font-size: 2rem; font-weight: 700; color: var(--secondary);">0</div>
-                            <div style="color: var(--text-muted);">Active Addresses</div>
-                        </div>
-                        <div style="text-align: center; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px;">
-                            <div id="total-emails" style="font-size: 2rem; font-weight: 700; color: var(--success);">0</div>
-                            <div style="color: var(--text-muted);">Processed Emails</div>
-                        </div>
-                        <div style="text-align: center; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px;">
-                            <div id="pending-permissions" style="font-size: 2rem; font-weight: 700; color: #fbbf24;">0</div>
-                            <div style="color: var(--text-muted);">Pending Requests</div>
-                        </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-users">0</div>
+                        <div class="stat-label">Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-addresses">0</div>
+                        <div class="stat-label">Addresses</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-emails">0</div>
+                        <div class="stat-label">Emails</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="pending-permissions">0</div>
+                        <div class="stat-label">Pending</div>
                     </div>
                 </div>
             </div>
 
             <!-- Users Section -->
             <div id="users" class="section">
-                <div class="glass" style="padding: 2rem;">
-                    <h3>Manage Users</h3>
-                    <div class="table-container" style="margin-top: 1.5rem;">
+                <div class="card">
+                    <div class="card-title">Users</div>
+                    <div class="table-container">
                         <table id="users-table">
                             <thead>
                                 <tr>
                                     <th>ID</th>
                                     <th>Status</th>
-                                    <th>Created At</th>
+                                    <th>Created</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -1512,18 +1888,21 @@ function getAdminPage() {
                 </div>
             </div>
 
-            <!-- Emails Section -->
-            <div id="emails" class="section">
-                <div class="glass" style="padding: 2rem;">
-                    <h3>Recent Emails</h3>
-                    <div class="table-container" style="margin-top: 1.5rem;">
-                        <table id="emails-table">
+            <!-- Inbox Section (Unified) -->
+            <div id="inbox" class="section">
+                <div class="card">
+                    <div class="card-title">Inbox</div>
+                    <div class="table-container">
+                        <table id="inbox-table">
                             <thead>
                                 <tr>
+                                    <th></th>
+                                    <th>User</th>
                                     <th>From</th>
                                     <th>To</th>
                                     <th>Subject</th>
-                                    <th>Received</th>
+                                    <th>Time</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -1534,15 +1913,15 @@ function getAdminPage() {
 
             <!-- Permissions Section -->
             <div id="permissions" class="section">
-                <div class="glass" style="padding: 2rem;">
-                    <h3>Pending Permissions</h3>
-                    <div class="table-container" style="margin-top: 1.5rem;">
+                <div class="card">
+                    <div class="card-title">Permissions</div>
+                    <div class="table-container">
                         <table id="permissions-table">
                             <thead>
                                 <tr>
-                                    <th>User ID</th>
+                                    <th>User</th>
                                     <th>Address</th>
-                                    <th>Requested At</th>
+                                    <th>Requested</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -1552,24 +1931,52 @@ function getAdminPage() {
                 </div>
             </div>
 
+            <!-- Bulk Generate Section -->
+            <div id="bulk-generate" class="section">
+                <div class="card">
+                    <div class="card-title">Generate Addresses</div>
+                    <p style="color: var(--jp-text-secondary); margin-bottom: 1.5rem; font-size: 0.875rem;">Create multiple random email addresses at once. Maximum 50 per batch.</p>
+                    <div style="display: flex; gap: 0.75rem; align-items: flex-end; margin-bottom: 1.5rem;">
+                        <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                            <label class="form-label">Prefix</label>
+                            <input class="form-input" type="text" id="bulk-prefix" placeholder="Optional prefix">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0; flex: 0 0 100px;">
+                            <label class="form-label">Count</label>
+                            <input class="form-input" type="number" id="bulk-count" value="5" min="1" max="50">
+                        </div>
+                        <button onclick="generateBulkAddresses()" class="btn btn-primary" id="bulk-generate-btn">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Generate
+                        </button>
+                    </div>
+                    <div id="bulk-results" style="display: none;">
+                        <div id="bulk-list" class="table-container" style="margin-top: 1rem;">
+                            <table>
+                                <thead><tr><th>Address</th><th>Status</th></tr></thead>
+                                <tbody id="bulk-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Settings Section -->
             <div id="settings" class="section">
-                <div class="glass" style="padding: 2rem; max-width: 600px;">
-                    <h3>System Settings</h3>
-                    <div style="margin-top: 2rem;">
-                        <div class="form-group">
-                            <label class="form-label">Email Retention (Days)</label>
-                            <div style="display: flex; gap: 1rem;">
-                                <input type="number" id="setting-ttl" class="form-input" placeholder="30">
-                                <button onclick="saveTTL()" class="btn btn-primary">Save</button>
-                            </div>
+                <div class="card" style="max-width: 560px;">
+                    <div class="card-title">Settings</div>
+                    <div class="form-group">
+                        <label class="form-label" for="setting-ttl">Email Retention (Days)</label>
+                        <div style="display: flex; gap: 0.75rem;">
+                            <input type="number" id="setting-ttl" class="form-input" placeholder="30" style="flex: 1;">
+                            <button onclick="saveTTL()" class="btn btn-primary">Save</button>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">System Domain</label>
-                            <div style="display: flex; gap: 1rem;">
-                                <input type="text" id="setting-domain" class="form-input" placeholder="example.com">
-                                <button onclick="saveDomain()" class="btn btn-primary">Save</button>
-                            </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="setting-domain">Domain</label>
+                        <div style="display: flex; gap: 0.75rem;">
+                            <input type="text" id="setting-domain" class="form-input" placeholder="example.com" style="flex: 1;">
+                            <button onclick="saveDomain()" class="btn btn-primary">Save</button>
                         </div>
                     </div>
                 </div>
@@ -1603,7 +2010,7 @@ function getAdminPage() {
 
             // Load Data
             if (sectionId === 'users') loadUsers();
-            if (sectionId === 'emails') loadEmails();
+            if (sectionId === 'inbox') loadInbox();
             if (sectionId === 'permissions') loadPermissions();
             if (sectionId === 'settings') loadSettings();
             if (sectionId === 'overview') loadStats();
@@ -1645,7 +2052,7 @@ function getAdminPage() {
                                 : '<span class="badge badge-success">Active</span>'}
                             \${u.is_admin ? '<span class="badge badge-warning" style="margin-left: 0.5rem">Admin</span>' : ''}
                         </td>
-                        <td>\${new Date(u.created_at).toLocaleDateString()}</td>
+                        <td>\${new Date(u.created_at * 1000).toLocaleDateString()}</td>
                         <td>
                             \${!u.is_admin ? \`
                                 \${u.is_banned 
@@ -1659,22 +2066,81 @@ function getAdminPage() {
             } catch (e) { console.error(e); }
         }
 
-        async function loadEmails() {
+        async function loadInbox() {
             try {
-                const res = await fetch(API_BASE + '/admin/emails?limit=50', {
+                const res = await fetch(API_BASE + '/admin/inbox?limit=100', {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 const data = await res.json();
-                const tbody = document.querySelector('#emails-table tbody');
-                tbody.innerHTML = data.emails.map(e => \`
-                    <tr>
+                const tbody = document.querySelector('#inbox-table tbody');
+                if (!data.emails || data.emails.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No emails yet</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.emails.map(e => {
+                    const isSent = e.direction === 'sent';
+                    const dirBadge = isSent
+                        ? '<td><span style="display:inline-flex;align-items:center;gap:0.25rem;font-size:0.7rem;font-weight:600;color:var(--jp-sage);background:var(--jp-sage-light);padding:0.15rem 0.5rem;border-radius:100px;"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>Sent</span></td>'
+                        : '<td><span style="display:inline-flex;align-items:center;gap:0.25rem;font-size:0.7rem;font-weight:600;color:var(--jp-accent);background:var(--jp-brass-light);padding:0.15rem 0.5rem;border-radius:100px;"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>Received</span></td>';
+                    const viewFn = isSent ? \`viewSentInboxEmail\` : \`viewReceivedInboxEmail\`;
+                    const rowBg = isSent ? 'background: var(--jp-sage-light);' : '';
+                    return \`<tr style="\${rowBg}">
+                        \${dirBadge}
+                        <td><span style="font-size:0.7rem;color:var(--jp-text-secondary);">\${e.user_id ? escapeHtml(e.user_id.substring(0,8)) + '...' : '?'}</span></td>
                         <td>\${escapeHtml(e.from_address)}</td>
                         <td>\${escapeHtml(e.to_address)}</td>
                         <td>\${escapeHtml(e.subject || '(No Subject)')}</td>
-                        <td style="color: var(--text-muted); font-size: 0.9rem;">\${new Date(e.received_at).toLocaleString()}</td>
-                    </tr>
-                \`).join('');
+                        <td style="color: var(--text-muted); font-size: 0.85rem; white-space: nowrap;">\${new Date(e.timestamp * 1000).toLocaleString()}</td>
+                        <td>
+                            <button onclick="\${viewFn}('\${e.id}')" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            </button>
+                        </td>
+                    </tr>\`;
+                }).join('');
             } catch (e) { console.error(e); }
+        }
+
+        async function viewReceivedInboxEmail(emailId) {
+            try {
+                const res = await fetch(API_BASE + '/emails/' + emailId, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    const email = data.email;
+                    document.getElementById('admin-email-subject').textContent = email.subject || '(No Subject)';
+                    document.getElementById('admin-email-from').textContent = email.from_address;
+                    document.getElementById('admin-email-to').textContent = email.to_address;
+                    document.getElementById('admin-email-label').textContent = 'Received';
+                    document.getElementById('admin-email-received').textContent = new Date(email.received_at * 1000).toLocaleString();
+                    const bodyContainer = document.getElementById('admin-email-body');
+                    if (email.html_body) bodyContainer.innerHTML = email.html_body;
+                    else bodyContainer.textContent = email.text_body || '(No content)';
+                    document.getElementById('admin-email-modal').classList.add('open');
+                } else { alert('Failed to load email'); }
+            } catch (e) { console.error(e); alert('Error loading email'); }
+        }
+
+        async function viewSentInboxEmail(emailId) {
+            try {
+                const res = await fetch(API_BASE + '/admin/sent-emails/' + emailId, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    const email = data.email;
+                    document.getElementById('admin-email-subject').textContent = email.subject || '(No Subject)';
+                    document.getElementById('admin-email-from').textContent = email.from_address;
+                    document.getElementById('admin-email-to').textContent = email.to_address;
+                    document.getElementById('admin-email-label').textContent = 'Sent';
+                    document.getElementById('admin-email-received').textContent = new Date(email.sent_at * 1000).toLocaleString();
+                    const bodyContainer = document.getElementById('admin-email-body');
+                    if (email.body_html) bodyContainer.innerHTML = email.body_html;
+                    else bodyContainer.textContent = email.body_text || '(No content)';
+                    document.getElementById('admin-email-modal').classList.add('open');
+                } else { alert('Failed to load sent email'); }
+            } catch (e) { console.error(e); alert('Error loading sent email'); }
         }
 
         async function loadPermissions() {
@@ -1714,6 +2180,56 @@ function getAdminPage() {
                 document.getElementById('setting-ttl').value = ttlData.ttl_days;
                 document.getElementById('setting-domain').value = domainData.domain;
             } catch (e) { console.error(e); }
+        }
+
+        async function generateBulkAddresses() {
+            const btn = document.getElementById('bulk-generate-btn');
+            const prefix = document.getElementById('bulk-prefix').value;
+            const count = parseInt(document.getElementById('bulk-count').value) || 5;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="rotating" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Generating...';
+            
+            try {
+                const res = await fetch(API_BASE + '/admin/addresses/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ count, prefix: prefix || undefined })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    const resultsDiv = document.getElementById('bulk-results');
+                    const tbody = document.getElementById('bulk-table-body');
+                    tbody.innerHTML = '';
+                    
+                    data.generated.forEach(addr => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = '<td>' + addr + '</td><td><span class="badge badge-success">Created</span></td>';
+                        tbody.appendChild(tr);
+                    });
+                    
+                    data.errors.forEach(err => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = '<td>' + err + '</td><td><span class="badge badge-danger">Error</span></td>';
+                        tbody.appendChild(tr);
+                    });
+                    
+                    resultsDiv.style.display = 'block';
+                    alert('Generated ' + data.count + ' addresses!');
+                } else {
+                    alert('Failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Error generating addresses');
+                console.error(e);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Generate';
+            }
         }
 
         // Actions
@@ -1785,6 +2301,31 @@ function getAdminPage() {
             window.location.href = '/login';
         }
     </script>
+
+    <!-- Admin Email Detail Modal -->            <div id="admin-email-modal" class="modal" onclick="if(event.target===this)this.classList.remove('open')">
+        <div class="modal-content">
+            <div style="padding: 1.5rem 1.75rem; border-bottom: 1px solid var(--jp-border-light); display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h2 id="admin-email-subject" style="font-size: 1.125rem; font-weight: 600; color: var(--jp-text); margin-bottom: 0.5rem; letter-spacing: -0.01em;">Subject</h2>
+                    <div style="color: var(--jp-text-secondary); font-size: 0.8125rem; line-height: 1.8;">
+                        <span style="color: var(--jp-text-light);">From</span> <span id="admin-email-from" style="color: var(--jp-text);"></span><br>
+                        <span style="color: var(--jp-text-light);">To</span> <span id="admin-email-to" style="color: var(--jp-text);"></span><br>
+                        <span id="admin-email-label" style="color: var(--jp-text-light);">Received</span> <span id="admin-email-received" style="color: var(--jp-text);"></span>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('admin-email-modal').classList.remove('open')" style="background: none; border: none; color: var(--jp-text-light); cursor: pointer; width: 32px; height: 32px; border-radius: var(--jp-radius); display: flex; align-items: center; justify-content: center; transition: all var(--jp-transition); flex-shrink: 0;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="admin-email-body" style="min-height: 200px; background: var(--jp-surface); color: var(--jp-text); overflow-x: auto; padding: 1.5rem 1.75rem; font-size: 0.875rem; line-height: 1.7;">
+                <style>
+                    #admin-email-body img { max-width: 100%; height: auto; }
+                    #admin-email-body table { max-width: 100%; }
+                    #admin-email-body > * { margin: 0; }
+                </style>
+            </div>
+        </div>
+    </div>
 </body>
 </html>`;
 }

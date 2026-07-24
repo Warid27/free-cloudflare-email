@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-07-17T02:49:11.5382646Z",
+  "scenario": "create email addresses",
+  "testFile": "E:\\Code\\free-cloudflare-email\\.gherkio\\tests\\email\\create-address.yaml",
+  "failedStepIndex": 3,
+  "failedStepLine": 46,
+  "role": "steps",
+  "error": "assertion 'status' failed: expected 409, got 400",
+  "diagnostics": {
+    "request": {
+      "method": "POST",
+      "url": "http://127.0.0.1:8788/api/addresses",
+      "headers": {
+        "Authorization": "Bearer 4f40d2dadf37c56f12efee277cf22fa3e7cfc51531d74e734ff750c20c54e12a"
+      },
+      "body": {
+        "prefix": "gqnk37g9s4qo@your-domain.com"
+      }
+    },
+    "response": {
+      "statusCode": 400,
+      "durationMs": 58,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "error": "Invalid email prefix format"
+      }
+    },
+    "variableStoreAtFailure": {
+      "accounts": {
+        "alice": {
+          "password": "alicepass",
+          "role": "user",
+          "username": "alice"
+        },
+        "default": {
+          "password": "emilyspass",
+          "role": "user",
+          "username": "emilys"
+        }
+      },
+      "addressId": "310f5c63-4cb6-443d-aa36-038e2a7e7ddf",
+      "addressStr": "gqnk37g9s4qo@your-domain.com",
+      "randomEmail": "user_833223@example.com",
+      "randomInt": 608563,
+      "randomPhone": "+628099392507",
+      "token": "***masked***",
+      "ulid": "06FPVYJT6RQ8MRP3XPFHS74EPN",
+      "uuid": "55ad95e8-2369-4408-9969-7902fe9a05a3"
+    }
+  }
+}

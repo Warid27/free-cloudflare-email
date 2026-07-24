@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-07-17T02:49:56.115888Z",
+  "scenario": "list addresses and emails with pagination",
+  "testFile": "E:\\Code\\free-cloudflare-email\\.gherkio\\tests\\email\\list-addresses.yaml",
+  "failedStepIndex": 1,
+  "failedStepLine": 17,
+  "role": "steps",
+  "error": "assertion 'status' failed: expected 200, got 409; assertion 'body.success' failed: expected true, got (not found)",
+  "diagnostics": {
+    "request": {
+      "method": "POST",
+      "url": "http://127.0.0.1:8788/api/addresses",
+      "headers": {
+        "Authorization": "Bearer 8c8b3fb3bf8a23018761d8e91f56b04f2700793a50606802d2da06b4753bbe40"
+      },
+      "body": {
+        "prefix": "paginated-test"
+      }
+    },
+    "response": {
+      "statusCode": 409,
+      "durationMs": 18,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "error": "Email address already exists"
+      }
+    },
+    "variableStoreAtFailure": {
+      "accounts": {
+        "alice": {
+          "password": "alicepass",
+          "role": "user",
+          "username": "alice"
+        },
+        "default": {
+          "password": "emilyspass",
+          "role": "user",
+          "username": "emilys"
+        }
+      },
+      "randomEmail": "user_331224@example.com",
+      "randomInt": 611123,
+      "randomPhone": "+628364133552",
+      "token": "***masked***",
+      "ulid": "06FPVYR8G4W47SWDDY75GN6SQQ",
+      "uuid": "54b6b42a-a1df-4fa3-a9ed-5668fda2bedc"
+    }
+  }
+}

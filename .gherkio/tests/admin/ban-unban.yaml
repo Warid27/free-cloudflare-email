@@ -1,0 +1,83 @@
+scenario: admin ban unban and delete user
+
+steps:
+  # Register a test user
+  - request:
+      method: POST
+      url: /api/user/register
+
+    expect:
+      status: 200
+      body.success: true
+
+    save:
+      testUserId: body.user.id
+      testUserToken: body.user.token
+
+  # Verify user is not banned
+  - request:
+      method: GET
+      url: /api/admin/users
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+
+  # Ban the test user
+  - request:
+      method: POST
+      url: /api/admin/users/$testUserId/ban
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.success: true
+      body.message: User banned
+
+  # Verify user is now banned (token should be rejected)
+  - request:
+      method: GET
+      url: /api/user/me
+      headers:
+        Authorization: Bearer $testUserToken
+
+    expect:
+      status: 401
+      body.error: exists
+
+  # Unban the test user
+  - request:
+      method: POST
+      url: /api/admin/users/$testUserId/unban
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.success: true
+      body.message: User unbanned
+
+  # Verify user is unbanned (token works again)
+  - request:
+      method: GET
+      url: /api/user/me
+      headers:
+        Authorization: Bearer $testUserToken
+
+    expect:
+      status: 200
+      body.id: $testUserId
+
+  # Delete the test user
+  - request:
+      method: DELETE
+      url: /api/admin/users/$testUserId
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.success: true
+      body.message: User deleted

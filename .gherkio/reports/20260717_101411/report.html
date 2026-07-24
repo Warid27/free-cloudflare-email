@@ -1,0 +1,2333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Test Report — send email permission and access control</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-secondary: #f7f7f5;
+        --bg-tertiary: #f0efec;
+        --text: #1a1a18;
+        --text-secondary: #5f5e5a;
+        --text-tertiary: #888780;
+        --border: rgba(0, 0, 0, 0.12);
+        --border-secondary: rgba(0, 0, 0, 0.2);
+        --pass-bg: #eaf3de;
+        --pass-text: #27500a;
+        --pass-border: #639922;
+        --fail-bg: #fcebeb;
+        --fail-text: #791f1f;
+        --fail-border: #e24b4a;
+        --badge-bg: #f1efe8;
+        --badge-text: #444441;
+        --warn-bg: #faeeda;
+        --warn-text: #633806;
+        --info-bg: #e6f1fb;
+        --info-text: #0c447c;
+        --code-bg: #f1efe8;
+        --radius: 8px;
+        --radius-lg: 12px;
+        --mono: "SF Mono", "Fira Code", "Cascadia Code", "Consolas", monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1c1c1a;
+          --bg-secondary: #252523;
+          --bg-tertiary: #2c2c2a;
+          --text: #f0efec;
+          --text-secondary: #b4b2a9;
+          --text-tertiary: #888780;
+          --border: rgba(255, 255, 255, 0.1);
+          --border-secondary: rgba(255, 255, 255, 0.18);
+          --pass-bg: #173404;
+          --pass-text: #c0dd97;
+          --pass-border: #3b6d11;
+          --fail-bg: #501313;
+          --fail-text: #f7c1c1;
+          --fail-border: #a32d2d;
+          --badge-bg: #2c2c2a;
+          --badge-text: #d3d1c7;
+          --warn-bg: #412402;
+          --warn-text: #fac775;
+          --info-bg: #042c53;
+          --info-text: #b5d4f4;
+          --code-bg: #2c2c2a;
+        }
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--text);
+        background: var(--bg-tertiary);
+        padding: 24px 16px 48px;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+       
+      .header {
+        background: var(--bg);
+        border: 0.5px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px 24px;
+        margin-bottom: 16px;
+      }
+      .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .scenario-name {
+        font-size: 20px;
+        font-weight: 500;
+        color: var(--text);
+      }
+      .env-badge {
+        font-size: 12px;
+        font-weight: 500;
+        padding: 3px 10px;
+        border-radius: 20px;
+        background: var(--info-bg);
+        color: var(--info-text);
+        border: 0.5px solid currentColor;
+        opacity: 0.9;
+      }
+      .env-badge.prod { background: var(--fail-bg); color: var(--fail-text); }
+      .env-badge.local { background: var(--skip-bg); color: var(--skip-text); }
+      .header-meta {
+        display: flex;
+        gap: 20px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+      .meta-item {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+      .meta-item strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .header-description {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 6px;
+        font-style: italic;
+      }
+
+       
+      .summary {
+        background: var(--bg);
+        border: 0.5px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 16px 24px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .summary-bar {
+        flex: 1;
+        min-width: 200px;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        display: flex;
+      }
+      .bar-pass {
+        background: var(--pass-border);
+      }
+      .bar-fail {
+        background: var(--fail-border);
+      }
+      .summary-stats {
+        display: flex;
+        gap: 16px;
+      }
+      .stat {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .stat-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .stat-dot.pass {
+        background: var(--pass-border);
+      }
+      .stat-dot.fail {
+        background: var(--fail-border);
+      }
+      .stat-dot.total {
+        background: var(--text-tertiary);
+      }
+
+       
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .step {
+        background: var(--bg);
+        border: 0.5px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .step.step-fail {
+        border-color: var(--fail-border);
+      }
+      .step-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        cursor: pointer;
+        user-select: none;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .step-header:hover {
+        background: var(--bg-secondary);
+      }
+      .step-status {
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+      .step-num {
+        font-size: 12px;
+        color: var(--text-tertiary);
+        font-weight: 500;
+        min-width: 28px;
+      }
+      .step-method {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 4px;
+        font-family: var(--mono);
+        flex-shrink: 0;
+      }
+      .step-name {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-style: italic;
+        margin: 0 6px;
+        flex-shrink: 0;
+      }
+      .req-details {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        margin-bottom: 8px;
+      }
+      .req-details td {
+        padding: 3px 0;
+        vertical-align: top;
+      }
+      .req-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+        width: 60px;
+        white-space: nowrap;
+        padding-right: 12px;
+      }
+      .req-value {
+        color: var(--text);
+        word-break: break-all;
+      }
+      .req-param {
+        display: inline-block;
+        background: var(--info-bg);
+        color: var(--info-text);
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-family: var(--mono);
+        font-size: 11px;
+        margin: 2px 3px 2px 0;
+      }
+      .req-header {
+        display: block;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin: 2px 0;
+      }
+      .req-header-key {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .req-body-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin: 6px 0 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .method-GET {
+        background: var(--info-bg);
+        color: var(--info-text);
+      }
+      .method-POST {
+        background: var(--pass-bg);
+        color: var(--pass-text);
+      }
+      .method-PUT {
+        background: var(--warn-bg);
+        color: var(--warn-text);
+      }
+      .method-PATCH {
+        background: var(--warn-bg);
+        color: var(--warn-text);
+      }
+      .method-DELETE {
+        background: var(--fail-bg);
+        color: var(--fail-text);
+      }
+      .step-url {
+        font-size: 13px;
+        font-family: var(--mono);
+        color: var(--text);
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .step-badges {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+      }
+      .badge {
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 20px;
+        border: 0.5px solid var(--border);
+        background: var(--badge-bg);
+        color: var(--badge-text);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        cursor: default;
+      }
+      .badge.timing-ok {
+        background: var(--badge-bg);
+        color: var(--badge-text);
+      }
+      .badge.timing-fail {
+        background: var(--fail-bg);
+        color: var(--fail-text);
+        border-color: var(--fail-border);
+      }
+      .badge.req-id {
+        cursor: pointer;
+      }
+      .badge.req-id:hover {
+        background: var(--info-bg);
+        color: var(--info-text);
+      }
+      .step-chevron {
+        font-size: 12px;
+        color: var(--text-tertiary);
+        transition: transform 0.2s;
+        margin-left: auto;
+      }
+      .step.open .step-chevron {
+        transform: rotate(180deg);
+      }
+
+       
+      .step-body {
+        display: none;
+        border-top: 0.5px solid var(--border);
+        padding: 16px;
+      }
+      .step.open .step-body {
+        display: block;
+      }
+
+       
+      .section {
+        margin-bottom: 12px;
+      }
+      .section-title {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 0;
+        user-select: none;
+      }
+      .section-title:hover {
+        color: var(--text);
+      }
+      .section-chevron {
+        font-size: 10px;
+        transition: transform 0.2s;
+      }
+      .section.open .section-chevron {
+        transform: rotate(90deg);
+      }
+      .section-content {
+        display: none;
+      }
+      .section.open .section-content {
+        display: block;
+      }
+
+       
+      .code-block {
+        background: var(--code-bg);
+        border: 0.5px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px 12px;
+        font-family: var(--mono);
+        font-size: 12px;
+        overflow-x: auto;
+        white-space: pre;
+        color: var(--text);
+        margin-top: 6px;
+        position: relative;
+      }
+      .code-block-wrap {
+        position: relative;
+      }
+      .copy-btn {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 4px;
+        border: 0.5px solid var(--border-secondary);
+        background: var(--bg);
+        color: var(--text-secondary);
+        cursor: pointer;
+        opacity: 0.8;
+      }
+      .copy-btn:hover {
+        opacity: 1;
+        background: var(--bg-secondary);
+      }
+
+       
+      .status-badge {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: var(--mono);
+        flex-shrink: 0;
+      }
+      .status-2xx {
+        background: var(--pass-bg);
+        color: var(--pass-text);
+      }
+      .status-3xx {
+        background: var(--info-bg);
+        color: var(--info-text);
+      }
+      .status-4xx {
+        background: var(--warn-bg);
+        color: var(--warn-text);
+      }
+      .status-5xx {
+        background: var(--fail-bg);
+        color: var(--fail-text);
+      }
+
+       
+      .assertions {
+        margin-top: 8px;
+      }
+      .assertion-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 5px 0;
+        border-bottom: 0.5px solid var(--border);
+        font-size: 13px;
+      }
+      .assertion-item:last-child {
+        border-bottom: none;
+      }
+      .assert-icon {
+        flex-shrink: 0;
+        font-size: 14px;
+      }
+      .assert-pass {
+        color: var(--pass-border);
+      }
+      .assert-fail {
+        color: var(--fail-border);
+      }
+      .assert-label {
+        flex: 1;
+        color: var(--text);
+      }
+      .assert-detail {
+        font-size: 12px;
+        color: var(--fail-text);
+        font-family: var(--mono);
+        margin-top: 2px;
+      }
+
+       
+      .response-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+
+       
+      #toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: var(--text);
+        color: var(--bg);
+        font-size: 13px;
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+        z-index: 999;
+      }
+      #toast.show {
+        opacity: 1;
+      }
+
+       
+      .toolbar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 8px;
+      }
+      .toolbar-btn {
+        font-size: 12px;
+        padding: 4px 12px;
+        border-radius: var(--radius);
+        border: 0.5px solid var(--border-secondary);
+        background: var(--bg);
+        color: var(--text-secondary);
+        cursor: pointer;
+      }
+      .toolbar-btn:hover {
+        background: var(--bg-secondary);
+        color: var(--text);
+      }
+
+       
+      .failure-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--fail-bg);
+        border: 0.5px solid var(--fail-border);
+        border-radius: var(--radius);
+        padding: 8px 14px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: var(--fail-text);
+        font-weight: 500;
+      }
+      .failure-nav button {
+        font-size: 12px;
+        padding: 3px 10px;
+        border-radius: 6px;
+        border: 0.5px solid var(--fail-border);
+        background: transparent;
+        color: var(--fail-text);
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .failure-nav button:hover { background: var(--fail-border); color: #fff; }
+      .failure-nav .spacer { flex: 1; }
+      .failure-nav .counter { font-size: 12px; opacity: 0.7; }
+
+       
+      .summary-ratio {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--pass-text);
+        font-variant-numeric: tabular-nums;
+        min-width: 52px;
+      }
+      .summary-ratio.has-fail { color: var(--fail-text); }
+
+       
+      .token-warning {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        color: var(--warn-text);
+        background: var(--warn-bg);
+        padding: 2px 8px;
+        border-radius: 4px;
+        border: 0.5px solid var(--warn-text);
+        cursor: default;
+      }
+
+       
+      @media print {
+        .toolbar, .failure-nav, #toast, .copy-btn { display: none !important; }
+        .step { page-break-inside: avoid; }
+        .step-body { display: block !important; }
+        .section-content { display: block !important; }
+        body { background: white; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      
+      <div class="header">
+        <div class="header-top">
+          <span class="scenario-name">send email permission and access control</span>
+          <span class="env-badge">local</span>
+        </div>
+        
+        <div class="header-meta">
+          <span class="meta-item"
+            ><strong>Started:</strong> Fri, 17 Jul 2026 10:14:11 &#43;07</span
+          >
+          <span class="meta-item"
+            ><strong>Duration:</strong> 552ms</span
+          >
+          <span class="meta-item"><strong>Steps:</strong> 10</span>
+          
+        </div>
+      </div>
+
+      
+      <div class="summary">
+        <span class="summary-ratio ">10/10</span>
+        <div class="summary-bar">
+          <div class="bar-pass" style="width: 100%"></div>
+          <div class="bar-fail" style="width: 0%"></div>
+        </div>
+        <div class="summary-stats">
+          <span class="stat"
+            ><span class="stat-dot pass"></span> 10 passed</span
+          >
+          <span class="stat"
+            ><span class="stat-dot fail"></span> 0 failed</span
+          >
+          <span class="stat"
+            ><span class="stat-dot total"></span> 10 total</span
+          >
+        </div>
+      </div>
+
+      
+      <div class="failure-nav" id="failure-nav">
+        <span>⚠ <span id="fail-count-label">0</span> failures</span>
+        <span class="spacer"></span>
+        <span class="counter" id="fail-counter">0 / 0</span>
+        <button onclick="prevFailure()">↑ Prev</button>
+        <button onclick="nextFailure()">↓ Next</button>
+      </div>
+
+      
+      <div class="toolbar">
+        <button class="toolbar-btn" id="toggle-all-btn" onclick="toggleAll()">Expand all</button>
+        <button class="toolbar-btn" onclick="window.print()">🖨 Print / PDF</button>
+      </div>
+
+      
+      
+      
+      <div class="steps" id="steps">
+        
+        <div
+          class="step "
+          id="step-0"
+        >
+          
+          <div class="step-header" onclick="toggleStep('step-0')">
+            <span class="step-status"
+              >✅</span
+            >
+            <span class="step-num">#1</span>
+            
+            <span class="step-method method-POST"
+              >POST</span
+            >
+            <span class="step-url" title="http://127.0.0.1:8788/api/user/register">http://127.0.0.1:8788/api/user/register</span>
+
+            <div class="step-badges">
+              
+              <span class="status-badge status-2xx"
+                >200</span
+              >
+
+              
+              <span
+                class="badge timing-ok"
+                title="Response time"
+              >
+                ⏱ 150ms
+              </span>
+
+              
+              
+
+              
+              
+            </div>
+
+            <span class="step-chevron">▼</span>
+          </div>
+
+          
+          <div class="step-body">
+            
+            <div class="response-info">
+              <span style="font-size: 13px; color: var(--text-secondary)">
+                <strong style="color: var(--text)">200</strong>
+                OK
+              </span>
+            </div>
+
+            
+
+            
+            
+
+            
+            <div class="section open" id="curl-0">
+              <div class="section-title" onclick="toggleSection('curl-0')">
+                <span class="section-chevron">▶</span> cURL command
+              </div>
+              <div class="section-content">
+                <div class="code-block-wrap">
+                  <pre class="code-block" id="curl-code-0">
+curl -X POST &#39;http://127.0.0.1:8788/api/user/register&#39;</pre
+                  >
+                  <button class="copy-btn" onclick="copyEl('curl-code-0')">
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="section open" id="req-0">
+              <div class="section-title" onclick="toggleSection('req-0')">
+                <span class="section-chevron">▶</span> Request details
+              </div>
+              <div class="section-content">
+                <table class="req-details">
+                  <tr><td class="req-label">URL</td><td class="req-value"><code>http://127.0.0.1:8788/api/user/register</code></td></tr>
+                  
+                  
+                </table>
+                
+              </div>
+            </div>
+
+            
+            
+            <div class="section" id="res-0">
+              <div class="section-title" onclick="toggleSection('res-0')">
+                <span class="section-chevron">▶</span> Response body
+              </div>
+              <div class="section-content">
+                <pre class="code-block">{
+  &#34;success&#34;: true,
+  &#34;user&#34;: {
+    &#34;created_at&#34;: 1784258050,
+    &#34;id&#34;: &#34;5050fb87-ae51-4a31-a8d5-7e6a290a7ccf&#34;,
+    &#34;is_admin&#34;: false,
+    &#34;token&#34;: &#34;***masked***&#34;
+  }
+}</pre>
+              </div>
+            </div>
+            
+
+            
+            
+            <div class="section open" id="assert-0">
+              <div
+                class="section-title"
+                onclick="toggleSection('assert-0')"
+              >
+                <span class="section-chevron">▶</span> Assertions (2)
+              </div>
+              <div class="section-content">
+                <div class="assertions">
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">status = 200</div>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">body.success = true</div>
+                      
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+        <div
+          class="step "
+          id="step-1"
+        >
+          
+          <div class="step-header" onclick="toggleStep('step-1')">
+            <span class="step-status"
+              >✅</span
+            >
+            <span class="step-num">#2</span>
+            
+            <span class="step-method method-POST"
+              >POST</span
+            >
+            <span class="step-url" title="http://127.0.0.1:8788/api/addresses">http://127.0.0.1:8788/api/addresses</span>
+
+            <div class="step-badges">
+              
+              <span class="status-badge status-2xx"
+                >200</span
+              >
+
+              
+              <span
+                class="badge timing-ok"
+                title="Response time"
+              >
+                ⏱ 65ms
+              </span>
+
+              
+              
+
+              
+              
+            </div>
+
+            <span class="step-chevron">▼</span>
+          </div>
+
+          
+          <div class="step-body">
+            
+            <div class="response-info">
+              <span style="font-size: 13px; color: var(--text-secondary)">
+                <strong style="color: var(--text)">200</strong>
+                OK
+              </span>
+            </div>
+
+            
+
+            
+            
+
+            
+            <div class="section open" id="curl-1">
+              <div class="section-title" onclick="toggleSection('curl-1')">
+                <span class="section-chevron">▶</span> cURL command
+              </div>
+              <div class="section-content">
+                <div class="code-block-wrap">
+                  <pre class="code-block" id="curl-code-1">
+curl -X POST &#39;http://127.0.0.1:8788/api/addresses&#39; -H &#39;Authorization: Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7&#39;</pre
+                  >
+                  <button class="copy-btn" onclick="copyEl('curl-code-1')">
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="section open" id="req-1">
+              <div class="section-title" onclick="toggleSection('req-1')">
+                <span class="section-chevron">▶</span> Request details
+              </div>
+              <div class="section-content">
+                <table class="req-details">
+                  <tr><td class="req-label">URL</td><td class="req-value"><code>http://127.0.0.1:8788/api/addresses</code></td></tr>
+                  
+                  
+                  <tr><td class="req-label">Headers</td><td class="req-value">
+                    <span class="req-header"><span class="req-header-key">Authorization</span>: <span class="req-header-val">Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7</span></span>
+                  </td></tr>
+                  
+                </table>
+                
+              </div>
+            </div>
+
+            
+            
+            <div class="section" id="res-1">
+              <div class="section-title" onclick="toggleSection('res-1')">
+                <span class="section-chevron">▶</span> Response body
+              </div>
+              <div class="section-content">
+                <pre class="code-block">{
+  &#34;address&#34;: {
+    &#34;address&#34;: &#34;cfbnxvfo3fxg@your-domain.com&#34;,
+    &#34;created_at&#34;: 1784258050,
+    &#34;id&#34;: &#34;4499dce3-6f45-426e-810b-f3120d356173&#34;
+  },
+  &#34;success&#34;: true
+}</pre>
+              </div>
+            </div>
+            
+
+            
+            
+            <div class="section open" id="assert-1">
+              <div
+                class="section-title"
+                onclick="toggleSection('assert-1')"
+              >
+                <span class="section-chevron">▶</span> Assertions (2)
+              </div>
+              <div class="section-content">
+                <div class="assertions">
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">status = 200</div>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">body.success = true</div>
+                      
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+        <div
+          class="step "
+          id="step-2"
+        >
+          
+          <div class="step-header" onclick="toggleStep('step-2')">
+            <span class="step-status"
+              >✅</span
+            >
+            <span class="step-num">#3</span>
+            
+            <span class="step-method method-POST"
+              >POST</span
+            >
+            <span class="step-url" title="http://127.0.0.1:8788/api/emails/send">http://127.0.0.1:8788/api/emails/send</span>
+
+            <div class="step-badges">
+              
+              <span class="status-badge status-4xx"
+                >403</span
+              >
+
+              
+              <span
+                class="badge timing-ok"
+                title="Response time"
+              >
+                ⏱ 41ms
+              </span>
+
+              
+              
+
+              
+              
+            </div>
+
+            <span class="step-chevron">▼</span>
+          </div>
+
+          
+          <div class="step-body">
+            
+            <div class="response-info">
+              <span style="font-size: 13px; color: var(--text-secondary)">
+                <strong style="color: var(--text)">403</strong>
+                Forbidden
+              </span>
+            </div>
+
+            
+
+            
+            
+
+            
+            <div class="section open" id="curl-2">
+              <div class="section-title" onclick="toggleSection('curl-2')">
+                <span class="section-chevron">▶</span> cURL command
+              </div>
+              <div class="section-content">
+                <div class="code-block-wrap">
+                  <pre class="code-block" id="curl-code-2">
+curl -X POST &#39;http://127.0.0.1:8788/api/emails/send&#39; -H &#39;Authorization: Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{&#34;from&#34;:&#34;cfbnxvfo3fxg@your-domain.com&#34;,&#34;html&#34;:&#34;\u003cp\u003eHello from test\u003c/p\u003e&#34;,&#34;subject&#34;:&#34;Test email&#34;,&#34;text&#34;:&#34;Hello from test&#34;,&#34;to&#34;:&#34;recipient@example.com&#34;}&#39;</pre
+                  >
+                  <button class="copy-btn" onclick="copyEl('curl-code-2')">
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="section open" id="req-2">
+              <div class="section-title" onclick="toggleSection('req-2')">
+                <span class="section-chevron">▶</span> Request details
+              </div>
+              <div class="section-content">
+                <table class="req-details">
+                  <tr><td class="req-label">URL</td><td class="req-value"><code>http://127.0.0.1:8788/api/emails/send</code></td></tr>
+                  
+                  
+                  <tr><td class="req-label">Headers</td><td class="req-value">
+                    <span class="req-header"><span class="req-header-key">Authorization</span>: <span class="req-header-val">Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7</span></span><span class="req-header"><span class="req-header-key">Content-Type</span>: <span class="req-header-val">application/json</span></span>
+                  </td></tr>
+                  
+                </table>
+                
+                <div class="req-body-label">Body</div>
+                <pre class="code-block">{
+  &#34;from&#34;: &#34;cfbnxvfo3fxg@your-domain.com&#34;,
+  &#34;html&#34;: &#34;\u003cp\u003eHello from test\u003c/p\u003e&#34;,
+  &#34;subject&#34;: &#34;Test email&#34;,
+  &#34;text&#34;: &#34;Hello from test&#34;,
+  &#34;to&#34;: &#34;recipient@example.com&#34;
+}</pre>
+                
+              </div>
+            </div>
+
+            
+            
+            <div class="section" id="res-2">
+              <div class="section-title" onclick="toggleSection('res-2')">
+                <span class="section-chevron">▶</span> Response body
+              </div>
+              <div class="section-content">
+                <pre class="code-block">{
+  &#34;error&#34;: &#34;Send permission not approved for this address&#34;
+}</pre>
+              </div>
+            </div>
+            
+
+            
+            
+            <div class="section open" id="assert-2">
+              <div
+                class="section-title"
+                onclick="toggleSection('assert-2')"
+              >
+                <span class="section-chevron">▶</span> Assertions (2)
+              </div>
+              <div class="section-content">
+                <div class="assertions">
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">status = 403</div>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">body.error exists</div>
+                      
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+        <div
+          class="step "
+          id="step-3"
+        >
+          
+          <div class="step-header" onclick="toggleStep('step-3')">
+            <span class="step-status"
+              >✅</span
+            >
+            <span class="step-num">#4</span>
+            
+            <span class="step-method method-POST"
+              >POST</span
+            >
+            <span class="step-url" title="http://127.0.0.1:8788/api/emails/send">http://127.0.0.1:8788/api/emails/send</span>
+
+            <div class="step-badges">
+              
+              <span class="status-badge status-4xx"
+                >404</span
+              >
+
+              
+              <span
+                class="badge timing-ok"
+                title="Response time"
+              >
+                ⏱ 29ms
+              </span>
+
+              
+              
+
+              
+              
+            </div>
+
+            <span class="step-chevron">▼</span>
+          </div>
+
+          
+          <div class="step-body">
+            
+            <div class="response-info">
+              <span style="font-size: 13px; color: var(--text-secondary)">
+                <strong style="color: var(--text)">404</strong>
+                Not Found
+              </span>
+            </div>
+
+            
+
+            
+            
+
+            
+            <div class="section open" id="curl-3">
+              <div class="section-title" onclick="toggleSection('curl-3')">
+                <span class="section-chevron">▶</span> cURL command
+              </div>
+              <div class="section-content">
+                <div class="code-block-wrap">
+                  <pre class="code-block" id="curl-code-3">
+curl -X POST &#39;http://127.0.0.1:8788/api/emails/send&#39; -H &#39;Authorization: Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{&#34;from&#34;:&#34;unauthorized@other-domain.com&#34;,&#34;subject&#34;:&#34;Test email&#34;,&#34;text&#34;:&#34;Hello&#34;,&#34;to&#34;:&#34;recipient@example.com&#34;}&#39;</pre
+                  >
+                  <button class="copy-btn" onclick="copyEl('curl-code-3')">
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="section open" id="req-3">
+              <div class="section-title" onclick="toggleSection('req-3')">
+                <span class="section-chevron">▶</span> Request details
+              </div>
+              <div class="section-content">
+                <table class="req-details">
+                  <tr><td class="req-label">URL</td><td class="req-value"><code>http://127.0.0.1:8788/api/emails/send</code></td></tr>
+                  
+                  
+                  <tr><td class="req-label">Headers</td><td class="req-value">
+                    <span class="req-header"><span class="req-header-key">Authorization</span>: <span class="req-header-val">Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7</span></span><span class="req-header"><span class="req-header-key">Content-Type</span>: <span class="req-header-val">application/json</span></span>
+                  </td></tr>
+                  
+                </table>
+                
+                <div class="req-body-label">Body</div>
+                <pre class="code-block">{
+  &#34;from&#34;: &#34;unauthorized@other-domain.com&#34;,
+  &#34;subject&#34;: &#34;Test email&#34;,
+  &#34;text&#34;: &#34;Hello&#34;,
+  &#34;to&#34;: &#34;recipient@example.com&#34;
+}</pre>
+                
+              </div>
+            </div>
+
+            
+            
+            <div class="section" id="res-3">
+              <div class="section-title" onclick="toggleSection('res-3')">
+                <span class="section-chevron">▶</span> Response body
+              </div>
+              <div class="section-content">
+                <pre class="code-block">{
+  &#34;error&#34;: &#34;From address not found or unauthorized&#34;
+}</pre>
+              </div>
+            </div>
+            
+
+            
+            
+            <div class="section open" id="assert-3">
+              <div
+                class="section-title"
+                onclick="toggleSection('assert-3')"
+              >
+                <span class="section-chevron">▶</span> Assertions (2)
+              </div>
+              <div class="section-content">
+                <div class="assertions">
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">status = 404</div>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">body.error exists</div>
+                      
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+        <div
+          class="step "
+          id="step-4"
+        >
+          
+          <div class="step-header" onclick="toggleStep('step-4')">
+            <span class="step-status"
+              >✅</span
+            >
+            <span class="step-num">#5</span>
+            
+            <span class="step-method method-POST"
+              >POST</span
+            >
+            <span class="step-url" title="http://127.0.0.1:8788/api/emails/address/4499dce3-6f45-426e-810b-f3120d356173/request-send">http://127.0.0.1:8788/api/emails/address/4499dce3-6f45-426e-810b-f3120d356173/request-send</span>
+
+            <div class="step-badges">
+              
+              <span class="status-badge status-2xx"
+                >200</span
+              >
+
+              
+              <span
+                class="badge timing-ok"
+                title="Response time"
+              >
+                ⏱ 38ms
+              </span>
+
+              
+              
+
+              
+              
+            </div>
+
+            <span class="step-chevron">▼</span>
+          </div>
+
+          
+          <div class="step-body">
+            
+            <div class="response-info">
+              <span style="font-size: 13px; color: var(--text-secondary)">
+                <strong style="color: var(--text)">200</strong>
+                OK
+              </span>
+            </div>
+
+            
+
+            
+            
+
+            
+            <div class="section open" id="curl-4">
+              <div class="section-title" onclick="toggleSection('curl-4')">
+                <span class="section-chevron">▶</span> cURL command
+              </div>
+              <div class="section-content">
+                <div class="code-block-wrap">
+                  <pre class="code-block" id="curl-code-4">
+curl -X POST &#39;http://127.0.0.1:8788/api/emails/address/4499dce3-6f45-426e-810b-f3120d356173/request-send&#39; -H &#39;Authorization: Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7&#39;</pre
+                  >
+                  <button class="copy-btn" onclick="copyEl('curl-code-4')">
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="section open" id="req-4">
+              <div class="section-title" onclick="toggleSection('req-4')">
+                <span class="section-chevron">▶</span> Request details
+              </div>
+              <div class="section-content">
+                <table class="req-details">
+                  <tr><td class="req-label">URL</td><td class="req-value"><code>http://127.0.0.1:8788/api/emails/address/4499dce3-6f45-426e-810b-f3120d356173/request-send</code></td></tr>
+                  
+                  
+                  <tr><td class="req-label">Headers</td><td class="req-value">
+                    <span class="req-header"><span class="req-header-key">Authorization</span>: <span class="req-header-val">Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7</span></span>
+                  </td></tr>
+                  
+                </table>
+                
+              </div>
+            </div>
+
+            
+            
+            <div class="section" id="res-4">
+              <div class="section-title" onclick="toggleSection('res-4')">
+                <span class="section-chevron">▶</span> Response body
+              </div>
+              <div class="section-content">
+                <pre class="code-block">{
+  &#34;permission&#34;: {
+    &#34;id&#34;: &#34;90bb6fc2-3da4-47dc-bea0-7fd974b0f09a&#34;,
+    &#34;requested_at&#34;: 1784258050,
+    &#34;status&#34;: &#34;pending&#34;
+  },
+  &#34;success&#34;: true
+}</pre>
+              </div>
+            </div>
+            
+
+            
+            
+            <div class="section open" id="assert-4">
+              <div
+                class="section-title"
+                onclick="toggleSection('assert-4')"
+              >
+                <span class="section-chevron">▶</span> Assertions (3)
+              </div>
+              <div class="section-content">
+                <div class="assertions">
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">status = 200</div>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">body.permission.status = pending</div>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">body.success = true</div>
+                      
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+        <div
+          class="step "
+          id="step-5"
+        >
+          
+          <div class="step-header" onclick="toggleStep('step-5')">
+            <span class="step-status"
+              >✅</span
+            >
+            <span class="step-num">#6</span>
+            
+            <span class="step-method method-POST"
+              >POST</span
+            >
+            <span class="step-url" title="http://127.0.0.1:8788/api/emails/send">http://127.0.0.1:8788/api/emails/send</span>
+
+            <div class="step-badges">
+              
+              <span class="status-badge status-4xx"
+                >403</span
+              >
+
+              
+              <span
+                class="badge timing-ok"
+                title="Response time"
+              >
+                ⏱ 36ms
+              </span>
+
+              
+              
+
+              
+              
+            </div>
+
+            <span class="step-chevron">▼</span>
+          </div>
+
+          
+          <div class="step-body">
+            
+            <div class="response-info">
+              <span style="font-size: 13px; color: var(--text-secondary)">
+                <strong style="color: var(--text)">403</strong>
+                Forbidden
+              </span>
+            </div>
+
+            
+
+            
+            
+
+            
+            <div class="section open" id="curl-5">
+              <div class="section-title" onclick="toggleSection('curl-5')">
+                <span class="section-chevron">▶</span> cURL command
+              </div>
+              <div class="section-content">
+                <div class="code-block-wrap">
+                  <pre class="code-block" id="curl-code-5">
+curl -X POST &#39;http://127.0.0.1:8788/api/emails/send&#39; -H &#39;Authorization: Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{&#34;from&#34;:&#34;cfbnxvfo3fxg@your-domain.com&#34;,&#34;subject&#34;:&#34;Test email&#34;,&#34;text&#34;:&#34;Hello&#34;,&#34;to&#34;:&#34;recipient@example.com&#34;}&#39;</pre
+                  >
+                  <button class="copy-btn" onclick="copyEl('curl-code-5')">
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="section open" id="req-5">
+              <div class="section-title" onclick="toggleSection('req-5')">
+                <span class="section-chevron">▶</span> Request details
+              </div>
+              <div class="section-content">
+                <table class="req-details">
+                  <tr><td class="req-label">URL</td><td class="req-value"><code>http://127.0.0.1:8788/api/emails/send</code></td></tr>
+                  
+                  
+                  <tr><td class="req-label">Headers</td><td class="req-value">
+                    <span class="req-header"><span class="req-header-key">Authorization</span>: <span class="req-header-val">Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7</span></span><span class="req-header"><span class="req-header-key">Content-Type</span>: <span class="req-header-val">application/json</span></span>
+                  </td></tr>
+                  
+                </table>
+                
+                <div class="req-body-label">Body</div>
+                <pre class="code-block">{
+  &#34;from&#34;: &#34;cfbnxvfo3fxg@your-domain.com&#34;,
+  &#34;subject&#34;: &#34;Test email&#34;,
+  &#34;text&#34;: &#34;Hello&#34;,
+  &#34;to&#34;: &#34;recipient@example.com&#34;
+}</pre>
+                
+              </div>
+            </div>
+
+            
+            
+            <div class="section" id="res-5">
+              <div class="section-title" onclick="toggleSection('res-5')">
+                <span class="section-chevron">▶</span> Response body
+              </div>
+              <div class="section-content">
+                <pre class="code-block">{
+  &#34;error&#34;: &#34;Send permission not approved for this address&#34;
+}</pre>
+              </div>
+            </div>
+            
+
+            
+            
+            <div class="section open" id="assert-5">
+              <div
+                class="section-title"
+                onclick="toggleSection('assert-5')"
+              >
+                <span class="section-chevron">▶</span> Assertions (2)
+              </div>
+              <div class="section-content">
+                <div class="assertions">
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">status = 403</div>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">body.error exists</div>
+                      
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+        <div
+          class="step "
+          id="step-6"
+        >
+          
+          <div class="step-header" onclick="toggleStep('step-6')">
+            <span class="step-status"
+              >✅</span
+            >
+            <span class="step-num">#7</span>
+            
+            <span class="step-method method-POST"
+              >POST</span
+            >
+            <span class="step-url" title="http://127.0.0.1:8788/api/admin/permissions/90bb6fc2-3da4-47dc-bea0-7fd974b0f09a/approve">http://127.0.0.1:8788/api/admin/permissions/90bb6fc2-3da4-47dc-bea0-7fd974b0f09a/approve</span>
+
+            <div class="step-badges">
+              
+              <span class="status-badge status-2xx"
+                >200</span
+              >
+
+              
+              <span
+                class="badge timing-ok"
+                title="Response time"
+              >
+                ⏱ 27ms
+              </span>
+
+              
+              
+
+              
+              
+            </div>
+
+            <span class="step-chevron">▼</span>
+          </div>
+
+          
+          <div class="step-body">
+            
+            <div class="response-info">
+              <span style="font-size: 13px; color: var(--text-secondary)">
+                <strong style="color: var(--text)">200</strong>
+                OK
+              </span>
+            </div>
+
+            
+
+            
+            
+
+            
+            <div class="section open" id="curl-6">
+              <div class="section-title" onclick="toggleSection('curl-6')">
+                <span class="section-chevron">▶</span> cURL command
+              </div>
+              <div class="section-content">
+                <div class="code-block-wrap">
+                  <pre class="code-block" id="curl-code-6">
+curl -X POST &#39;http://127.0.0.1:8788/api/admin/permissions/90bb6fc2-3da4-47dc-bea0-7fd974b0f09a/approve&#39; -H &#39;Authorization: Bearer admin-secret-token-change-this&#39;</pre
+                  >
+                  <button class="copy-btn" onclick="copyEl('curl-code-6')">
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="section open" id="req-6">
+              <div class="section-title" onclick="toggleSection('req-6')">
+                <span class="section-chevron">▶</span> Request details
+              </div>
+              <div class="section-content">
+                <table class="req-details">
+                  <tr><td class="req-label">URL</td><td class="req-value"><code>http://127.0.0.1:8788/api/admin/permissions/90bb6fc2-3da4-47dc-bea0-7fd974b0f09a/approve</code></td></tr>
+                  
+                  
+                  <tr><td class="req-label">Headers</td><td class="req-value">
+                    <span class="req-header"><span class="req-header-key">Authorization</span>: <span class="req-header-val">Bearer admin-secret-token-change-this</span></span>
+                  </td></tr>
+                  
+                </table>
+                
+              </div>
+            </div>
+
+            
+            
+            <div class="section" id="res-6">
+              <div class="section-title" onclick="toggleSection('res-6')">
+                <span class="section-chevron">▶</span> Response body
+              </div>
+              <div class="section-content">
+                <pre class="code-block">{
+  &#34;message&#34;: &#34;Permission approved&#34;,
+  &#34;success&#34;: true
+}</pre>
+              </div>
+            </div>
+            
+
+            
+            
+            <div class="section open" id="assert-6">
+              <div
+                class="section-title"
+                onclick="toggleSection('assert-6')"
+              >
+                <span class="section-chevron">▶</span> Assertions (2)
+              </div>
+              <div class="section-content">
+                <div class="assertions">
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">status = 200</div>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">body.success = true</div>
+                      
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+        <div
+          class="step "
+          id="step-7"
+        >
+          
+          <div class="step-header" onclick="toggleStep('step-7')">
+            <span class="step-status"
+              >✅</span
+            >
+            <span class="step-num">#8</span>
+            
+            <span class="step-method method-POST"
+              >POST</span
+            >
+            <span class="step-url" title="http://127.0.0.1:8788/api/emails/send">http://127.0.0.1:8788/api/emails/send</span>
+
+            <div class="step-badges">
+              
+              <span class="status-badge status-2xx"
+                >200</span
+              >
+
+              
+              <span
+                class="badge timing-ok"
+                title="Response time"
+              >
+                ⏱ 71ms
+              </span>
+
+              
+              
+
+              
+              
+            </div>
+
+            <span class="step-chevron">▼</span>
+          </div>
+
+          
+          <div class="step-body">
+            
+            <div class="response-info">
+              <span style="font-size: 13px; color: var(--text-secondary)">
+                <strong style="color: var(--text)">200</strong>
+                OK
+              </span>
+            </div>
+
+            
+
+            
+            
+
+            
+            <div class="section open" id="curl-7">
+              <div class="section-title" onclick="toggleSection('curl-7')">
+                <span class="section-chevron">▶</span> cURL command
+              </div>
+              <div class="section-content">
+                <div class="code-block-wrap">
+                  <pre class="code-block" id="curl-code-7">
+curl -X POST &#39;http://127.0.0.1:8788/api/emails/send&#39; -H &#39;Authorization: Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{&#34;from&#34;:&#34;cfbnxvfo3fxg@your-domain.com&#34;,&#34;html&#34;:&#34;\u003cp\u003eThis is a test email sent via \u003cstrong\u003eGherkio\u003c/strong\u003e\u003c/p\u003e&#34;,&#34;subject&#34;:&#34;Test email from Gherkio&#34;,&#34;text&#34;:&#34;This is a test email sent via Gherkio&#34;,&#34;to&#34;:&#34;recipient@example.com&#34;}&#39;</pre
+                  >
+                  <button class="copy-btn" onclick="copyEl('curl-code-7')">
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="section open" id="req-7">
+              <div class="section-title" onclick="toggleSection('req-7')">
+                <span class="section-chevron">▶</span> Request details
+              </div>
+              <div class="section-content">
+                <table class="req-details">
+                  <tr><td class="req-label">URL</td><td class="req-value"><code>http://127.0.0.1:8788/api/emails/send</code></td></tr>
+                  
+                  
+                  <tr><td class="req-label">Headers</td><td class="req-value">
+                    <span class="req-header"><span class="req-header-key">Authorization</span>: <span class="req-header-val">Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7</span></span><span class="req-header"><span class="req-header-key">Content-Type</span>: <span class="req-header-val">application/json</span></span>
+                  </td></tr>
+                  
+                </table>
+                
+                <div class="req-body-label">Body</div>
+                <pre class="code-block">{
+  &#34;from&#34;: &#34;cfbnxvfo3fxg@your-domain.com&#34;,
+  &#34;html&#34;: &#34;\u003cp\u003eThis is a test email sent via \u003cstrong\u003eGherkio\u003c/strong\u003e\u003c/p\u003e&#34;,
+  &#34;subject&#34;: &#34;Test email from Gherkio&#34;,
+  &#34;text&#34;: &#34;This is a test email sent via Gherkio&#34;,
+  &#34;to&#34;: &#34;recipient@example.com&#34;
+}</pre>
+                
+              </div>
+            </div>
+
+            
+            
+            <div class="section" id="res-7">
+              <div class="section-title" onclick="toggleSection('res-7')">
+                <span class="section-chevron">▶</span> Response body
+              </div>
+              <div class="section-content">
+                <pre class="code-block">{
+  &#34;message&#34;: &#34;Email sent&#34;,
+  &#34;success&#34;: true
+}</pre>
+              </div>
+            </div>
+            
+
+            
+            
+            <div class="section open" id="assert-7">
+              <div
+                class="section-title"
+                onclick="toggleSection('assert-7')"
+              >
+                <span class="section-chevron">▶</span> Assertions (2)
+              </div>
+              <div class="section-content">
+                <div class="assertions">
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">status = 200</div>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">body.success = true</div>
+                      
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+        <div
+          class="step "
+          id="step-8"
+        >
+          
+          <div class="step-header" onclick="toggleStep('step-8')">
+            <span class="step-status"
+              >✅</span
+            >
+            <span class="step-num">#9</span>
+            
+            <span class="step-method method-POST"
+              >POST</span
+            >
+            <span class="step-url" title="http://127.0.0.1:8788/api/emails/send">http://127.0.0.1:8788/api/emails/send</span>
+
+            <div class="step-badges">
+              
+              <span class="status-badge status-4xx"
+                >401</span
+              >
+
+              
+              <span
+                class="badge timing-ok"
+                title="Response time"
+              >
+                ⏱ 28ms
+              </span>
+
+              
+              
+
+              
+              
+            </div>
+
+            <span class="step-chevron">▼</span>
+          </div>
+
+          
+          <div class="step-body">
+            
+            <div class="response-info">
+              <span style="font-size: 13px; color: var(--text-secondary)">
+                <strong style="color: var(--text)">401</strong>
+                Unauthorized
+              </span>
+            </div>
+
+            
+
+            
+            
+
+            
+            <div class="section open" id="curl-8">
+              <div class="section-title" onclick="toggleSection('curl-8')">
+                <span class="section-chevron">▶</span> cURL command
+              </div>
+              <div class="section-content">
+                <div class="code-block-wrap">
+                  <pre class="code-block" id="curl-code-8">
+curl -X POST &#39;http://127.0.0.1:8788/api/emails/send&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{&#34;from&#34;:&#34;cfbnxvfo3fxg@your-domain.com&#34;,&#34;subject&#34;:&#34;Test&#34;,&#34;text&#34;:&#34;Hello&#34;,&#34;to&#34;:&#34;recipient@example.com&#34;}&#39;</pre
+                  >
+                  <button class="copy-btn" onclick="copyEl('curl-code-8')">
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="section open" id="req-8">
+              <div class="section-title" onclick="toggleSection('req-8')">
+                <span class="section-chevron">▶</span> Request details
+              </div>
+              <div class="section-content">
+                <table class="req-details">
+                  <tr><td class="req-label">URL</td><td class="req-value"><code>http://127.0.0.1:8788/api/emails/send</code></td></tr>
+                  
+                  
+                  <tr><td class="req-label">Headers</td><td class="req-value">
+                    <span class="req-header"><span class="req-header-key">Content-Type</span>: <span class="req-header-val">application/json</span></span>
+                  </td></tr>
+                  
+                </table>
+                
+                <div class="req-body-label">Body</div>
+                <pre class="code-block">{
+  &#34;from&#34;: &#34;cfbnxvfo3fxg@your-domain.com&#34;,
+  &#34;subject&#34;: &#34;Test&#34;,
+  &#34;text&#34;: &#34;Hello&#34;,
+  &#34;to&#34;: &#34;recipient@example.com&#34;
+}</pre>
+                
+              </div>
+            </div>
+
+            
+            
+            <div class="section" id="res-8">
+              <div class="section-title" onclick="toggleSection('res-8')">
+                <span class="section-chevron">▶</span> Response body
+              </div>
+              <div class="section-content">
+                <pre class="code-block">{
+  &#34;error&#34;: &#34;Unauthorized&#34;
+}</pre>
+              </div>
+            </div>
+            
+
+            
+            
+            <div class="section open" id="assert-8">
+              <div
+                class="section-title"
+                onclick="toggleSection('assert-8')"
+              >
+                <span class="section-chevron">▶</span> Assertions (2)
+              </div>
+              <div class="section-content">
+                <div class="assertions">
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">status = 401</div>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">body.error exists</div>
+                      
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+        <div
+          class="step "
+          id="step-9"
+        >
+          
+          <div class="step-header" onclick="toggleStep('step-9')">
+            <span class="step-status"
+              >✅</span
+            >
+            <span class="step-num">#10</span>
+            
+            <span class="step-method method-POST"
+              >POST</span
+            >
+            <span class="step-url" title="http://127.0.0.1:8788/api/emails/send">http://127.0.0.1:8788/api/emails/send</span>
+
+            <div class="step-badges">
+              
+              <span class="status-badge status-5xx"
+                >500</span
+              >
+
+              
+              <span
+                class="badge timing-ok"
+                title="Response time"
+              >
+                ⏱ 57ms
+              </span>
+
+              
+              
+
+              
+              
+            </div>
+
+            <span class="step-chevron">▼</span>
+          </div>
+
+          
+          <div class="step-body">
+            
+            <div class="response-info">
+              <span style="font-size: 13px; color: var(--text-secondary)">
+                <strong style="color: var(--text)">500</strong>
+                Internal Server Error
+              </span>
+            </div>
+
+            
+
+            
+            
+
+            
+            <div class="section open" id="curl-9">
+              <div class="section-title" onclick="toggleSection('curl-9')">
+                <span class="section-chevron">▶</span> cURL command
+              </div>
+              <div class="section-content">
+                <div class="code-block-wrap">
+                  <pre class="code-block" id="curl-code-9">
+curl -X POST &#39;http://127.0.0.1:8788/api/emails/send&#39; -H &#39;Authorization: Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{&#34;from&#34;:&#34;cfbnxvfo3fxg@your-domain.com&#34;}&#39;</pre
+                  >
+                  <button class="copy-btn" onclick="copyEl('curl-code-9')">
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="section open" id="req-9">
+              <div class="section-title" onclick="toggleSection('req-9')">
+                <span class="section-chevron">▶</span> Request details
+              </div>
+              <div class="section-content">
+                <table class="req-details">
+                  <tr><td class="req-label">URL</td><td class="req-value"><code>http://127.0.0.1:8788/api/emails/send</code></td></tr>
+                  
+                  
+                  <tr><td class="req-label">Headers</td><td class="req-value">
+                    <span class="req-header"><span class="req-header-key">Authorization</span>: <span class="req-header-val">Bearer 24953c374e08a944e1dcf9f7385c62ca257afdbfd09ceda2ecaed836a59877a7</span></span><span class="req-header"><span class="req-header-key">Content-Type</span>: <span class="req-header-val">application/json</span></span>
+                  </td></tr>
+                  
+                </table>
+                
+                <div class="req-body-label">Body</div>
+                <pre class="code-block">{
+  &#34;from&#34;: &#34;cfbnxvfo3fxg@your-domain.com&#34;
+}</pre>
+                
+              </div>
+            </div>
+
+            
+            
+            <div class="section" id="res-9">
+              <div class="section-title" onclick="toggleSection('res-9')">
+                <span class="section-chevron">▶</span> Response body
+              </div>
+              <div class="section-content">
+                <pre class="code-block">{
+  &#34;error&#34;: &#34;Failed to send email&#34;
+}</pre>
+              </div>
+            </div>
+            
+
+            
+            
+            <div class="section open" id="assert-9">
+              <div
+                class="section-title"
+                onclick="toggleSection('assert-9')"
+              >
+                <span class="section-chevron">▶</span> Assertions (2)
+              </div>
+              <div class="section-content">
+                <div class="assertions">
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">status = 500</div>
+                      
+                    </div>
+                  </div>
+                  
+                  <div class="assertion-item">
+                    <span
+                      class="assert-icon assert-pass"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <div class="assert-label">body.error exists</div>
+                      
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
+      </div>
+      
+    </div>
+    
+
+    <div id="toast">Copied!</div>
+
+    <script>
+      var allExpanded = false;
+
+      function toggleStep(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.toggle("open");
+      }
+
+      function toggleSection(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.toggle("open");
+      }
+
+      function toggleAll() {
+        var steps = document.querySelectorAll(".step");
+        allExpanded = !allExpanded;
+        steps.forEach(function (s) {
+          if (allExpanded) s.classList.add("open");
+          else s.classList.remove("open");
+        });
+        document.getElementById("toggle-all-btn").textContent = allExpanded
+          ? "Collapse all"
+          : "Expand all";
+      }
+
+      function copyEl(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        copyText(el.innerText, null);
+      }
+
+      function copyText(text, evt) {
+        if (evt) evt.stopPropagation();
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(text).then(showToast);
+        } else {
+          var ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+          showToast();
+        }
+      }
+
+      function showToast() {
+        var t = document.getElementById("toast");
+        t.classList.add("show");
+        setTimeout(function () {
+          t.classList.remove("show");
+        }, 1800);
+      }
+
+      
+      document.querySelectorAll(".step.step-fail").forEach(function (s) {
+        s.classList.add("open");
+      });
+
+      
+      var failIds = [];
+      var failIdx = 0;
+      function buildFailList() {
+        failIds = Array.from(document.querySelectorAll(".step.step-fail")).map(function(s){ return s.id; });
+        var nav = document.getElementById("failure-nav");
+        var lbl = document.getElementById("fail-count-label");
+        if (lbl) lbl.textContent = failIds.length;
+        if (failIds.length === 0) { nav.style.display = "none"; return; }
+        updateFailCounter();
+      }
+      function updateFailCounter() {
+        document.getElementById("fail-counter").textContent = (failIdx + 1) + " / " + failIds.length;
+      }
+      function nextFailure() {
+        if (!failIds.length) return;
+        failIdx = (failIdx + 1) % failIds.length;
+        jumpToFail();
+      }
+      function prevFailure() {
+        if (!failIds.length) return;
+        failIdx = (failIdx - 1 + failIds.length) % failIds.length;
+        jumpToFail();
+      }
+      function jumpToFail() {
+        updateFailCounter();
+        var el = document.getElementById(failIds[failIdx]);
+        if (el) {
+          el.classList.add("open");
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+      buildFailList();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,121 @@
+scenario: admin settings management
+
+steps:
+  # Get TTL setting
+  - request:
+      method: GET
+      url: /api/admin/settings/ttl
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.ttl_days: exists
+
+    save:
+      originalTtl: body.ttl_days
+
+  # Update TTL setting
+  - request:
+      method: PUT
+      url: /api/admin/settings/ttl
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+        Content-Type: application/json
+      body:
+        ttl_days: "60"
+
+    expect:
+      status: 200
+      body.success: true
+      body.ttl_days: 60
+
+  # Verify TTL was updated
+  - request:
+      method: GET
+      url: /api/admin/settings/ttl
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.ttl_days: "60"
+
+  # Restore original TTL
+  - request:
+      method: PUT
+      url: /api/admin/settings/ttl
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+        Content-Type: application/json
+      body:
+        ttl_days: $originalTtl
+
+    expect:
+      status: 200
+      body.success: true
+
+  # Get domain setting
+  - request:
+      method: GET
+      url: /api/admin/settings/domain
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.domain: exists
+
+  # Update domain setting
+  - request:
+      method: PUT
+      url: /api/admin/settings/domain
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+        Content-Type: application/json
+      body:
+        domain: test-domain.local
+
+    expect:
+      status: 200
+      body.success: true
+      body.domain: test-domain.local
+
+  # Verify domain was updated
+  - request:
+      method: GET
+      url: /api/admin/settings/domain
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.domain: test-domain.local
+
+  # Restore original domain
+  - request:
+      method: PUT
+      url: /api/admin/settings/domain
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+        Content-Type: application/json
+      body:
+        domain: your-domain.com
+
+    expect:
+      status: 200
+      body.success: true
+
+  # Test invalid TTL (should fail)
+  - request:
+      method: PUT
+      url: /api/admin/settings/ttl
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+        Content-Type: application/json
+      body:
+        ttl_days: "not-a-number"
+
+    expect:
+      status: 400
+      body.error: exists

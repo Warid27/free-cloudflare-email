@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-07-17T03:41:29.1405193Z",
+  "scenario": "delete email address",
+  "testFile": "E:\\Code\\free-cloudflare-email\\.gherkio\\tests\\email\\delete-address.yaml",
+  "failedStepIndex": 4,
+  "failedStepLine": 54,
+  "role": "steps",
+  "error": "assertion 'status' failed: expected 200, got 400; assertion 'body.success' failed: expected true, got (not found)",
+  "diagnostics": {
+    "request": {
+      "method": "POST",
+      "url": "http://127.0.0.1:8788/api/addresses",
+      "headers": {
+        "Authorization": "Bearer e46d3de4e0f452becfd2bf7088ed291cdec20c2657083fd83142fc122b61fa4e"
+      },
+      "body": {
+        "prefix": "cwfbm9icyloa@your-domain.com"
+      }
+    },
+    "response": {
+      "statusCode": 400,
+      "durationMs": 90,
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "error": "Invalid email prefix format"
+      }
+    },
+    "variableStoreAtFailure": {
+      "accounts": {
+        "alice": {
+          "password": "alicepass",
+          "role": "user",
+          "username": "alice"
+        },
+        "default": {
+          "password": "emilyspass",
+          "role": "user",
+          "username": "emilys"
+        }
+      },
+      "addressId": "dd59c251-35be-4fca-9b18-30cc39e6da23",
+      "addressStr": "cwfbm9icyloa@your-domain.com",
+      "randomEmail": "user_675942@example.com",
+      "randomInt": 474782,
+      "randomPhone": "+628455485304",
+      "token": "***masked***",
+      "ulid": "06FPWAHTAWAY0RK7XW66NSTMZB",
+      "uuid": "62a81897-7609-4858-be36-e7432cdaba9b"
+    }
+  }
+}

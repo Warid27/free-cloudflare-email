@@ -1,0 +1,36 @@
+scenario: using built-in generator variables
+
+steps:
+  - request:
+      method: POST
+      url: /auth/login
+
+      body:
+        username: $accounts.alice.username
+        password: $accounts.alice.password
+        expiresInMins: 30
+        idempotencyKey: $uuid
+        requestId: $ulid
+        otpCode: $randomInt
+        email: $randomEmail
+        phone: $randomPhone
+
+    expect:
+      status: 200
+      body.accessToken: exists
+      body.refreshToken: exists
+      schema: example/login-response
+
+    save:
+      accessToken: body.accessToken
+
+  - request:
+      method: GET
+      url: /auth/me
+      headers:
+        Authorization: Bearer $accessToken
+        X-Idempotency: $uuid
+    expect:
+      status: 200
+      body.username: $accounts.alice.username
+      schema: example/user-response

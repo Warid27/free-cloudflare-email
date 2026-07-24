@@ -326,7 +326,7 @@ adminRoutes.get('/inbox', requireAdmin, async (c) => {
        INNER JOIN email_addresses ea ON e.address_id = ea.id
        ORDER BY e.received_at DESC
        LIMIT ? OFFSET ?`
-    ).bind(limit + offset, offset).all();
+    ).bind(limit, offset).all();
 
     // Fetch sent emails with direction tag
     const sent = await c.env.DB.prepare(
@@ -335,15 +335,18 @@ adminRoutes.get('/inbox', requireAdmin, async (c) => {
        INNER JOIN email_addresses ea ON se.address_id = ea.id
        ORDER BY se.sent_at DESC
        LIMIT ? OFFSET ?`
-    ).bind(limit + offset, offset).all();
+    ).bind(limit, offset).all();
 
     // Merge and sort by timestamp descending
-    const all = [...received.results, ...sent.results]
+    const receivedResults = received?.results || [];
+    const sentResults = sent?.results || [];
+    const all = [...receivedResults, ...sentResults]
       .sort((a: any, b: any) => b.timestamp - a.timestamp)
-      .slice(offset, offset + limit);
+      .slice(0, limit);
 
     return c.json(successResponse({ emails: all }));
   } catch (error) {
+    console.error('Failed to fetch inbox:', error);
     return c.json(errorResponse('Failed to fetch inbox', 500));
   }
 });

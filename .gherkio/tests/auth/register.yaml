@@ -1,0 +1,18 @@
+scenario: user registration
+
+steps:
+  - request:
+      method: POST
+      url: /api/user/register
+
+    expect:
+      status: 200
+      body.success: true
+      body.user.id: exists
+      body.user.token: exists
+      body.user.is_admin: false
+      body.user.created_at: exists
+
+    save:
+      userId: body.user.id
+      userToken: body.user.token

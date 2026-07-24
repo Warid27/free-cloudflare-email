@@ -1,0 +1,59 @@
+scenario: mark email as read and unread
+
+steps:
+  # Register user
+  - request:
+      method: POST
+      url: /api/user/register
+
+    expect:
+      status: 200
+
+    save:
+      token: body.user.token
+
+  # Create an address
+  - request:
+      method: POST
+      url: /api/addresses
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+
+    save:
+      addressId: body.address.id
+
+  # Get emails (should be empty)
+  - request:
+      method: GET
+      url: /api/emails?address_id=$addressId
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+      body.emails: exists
+
+  # Try mark-read on non-existent email (should 404)
+  - request:
+      method: POST
+      url: /api/emails/non-existent-id/mark-read
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 404
+      body.error: exists
+
+  # Try mark-unread on non-existent email (should 404)
+  - request:
+      method: POST
+      url: /api/emails/non-existent-id/mark-unread
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 404
+      body.error: exists

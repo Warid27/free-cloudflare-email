@@ -1,0 +1,64 @@
+scenario: list addresses and emails with pagination
+
+steps:
+  # Register user
+  - request:
+      method: POST
+      url: /api/user/register
+
+    expect:
+      status: 200
+      body.success: true
+
+    save:
+      token: body.user.token
+
+  # Create an address (random prefix for isolation)
+  - request:
+      method: POST
+      url: /api/addresses
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+      body.success: true
+
+    save:
+      addressId: body.address.id
+
+  # List addresses
+  - request:
+      method: GET
+      url: /api/addresses
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+      body.addresses: exists
+
+  # List emails (count only)
+  - request:
+      method: GET
+      url: /api/emails?count_only=true
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+      body.count: 0
+
+  # List emails with pagination
+  - request:
+      method: GET
+      url: /api/emails?limit=10&offset=0
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+      body.emails: exists
+      body.pagination.limit: 10
+      body.pagination.offset: 0
+      body.pagination.has_more: false

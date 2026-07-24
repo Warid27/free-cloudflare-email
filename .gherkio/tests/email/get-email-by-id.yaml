@@ -1,0 +1,57 @@
+scenario: get email by ID
+
+steps:
+  # Register user
+  - request:
+      method: POST
+      url: /api/user/register
+
+    expect:
+      status: 200
+      body.success: true
+
+    save:
+      token: body.user.token
+
+  # Create address
+  - request:
+      method: POST
+      url: /api/addresses
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+
+    save:
+      addressId: body.address.id
+
+  # Get emails to find an email ID (if any exist)
+  - request:
+      method: GET
+      url: /api/emails?address_id=$addressId
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 200
+
+  # Try to get non-existent email (should 404)
+  - request:
+      method: GET
+      url: /api/emails/non-existent-id
+      headers:
+        Authorization: Bearer $token
+
+    expect:
+      status: 404
+      body.error: exists
+
+  # Try to get email without auth (should 401)
+  - request:
+      method: GET
+      url: /api/emails/some-id
+
+    expect:
+      status: 401
+      body.error: exists

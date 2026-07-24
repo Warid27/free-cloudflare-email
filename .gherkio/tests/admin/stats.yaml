@@ -1,0 +1,59 @@
+scenario: admin stats and user management
+
+steps:
+  # Get system statistics
+  - request:
+      method: GET
+      url: /api/admin/stats
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.users: exists
+      body.addresses: exists
+      body.emails: exists
+      body.pending_permissions: exists
+
+  # List all users
+  - request:
+      method: GET
+      url: /api/admin/users
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.users: exists
+
+  # List all emails (admin view)
+  - request:
+      method: GET
+      url: /api/admin/emails?limit=10&offset=0
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.emails: exists
+
+  # List all addresses (admin view)
+  - request:
+      method: GET
+      url: /api/admin/addresses
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
+      body.addresses: exists
+
+  # Get pending permissions
+  - request:
+      method: GET
+      url: /api/admin/permissions/pending
+      headers:
+        Authorization: Bearer admin-secret-token-change-this
+
+    expect:
+      status: 200
