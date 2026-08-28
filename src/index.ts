@@ -25,10 +25,12 @@ app.use('/*', cors({
     // Allow requests with no origin (e.g. curl, mobile apps)
     if (!origin) return origin;
     if (allowed.includes(origin)) return origin;
-    // Check wildcard patterns
+    // Check wildcard patterns (e.g. *.pages.dev)
     for (const pattern of allowed) {
       if (pattern.includes('*')) {
-        const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+        // Escape dots, then replace * with a subdomain-safe pattern
+        const escaped = pattern.replace(/[.]/g, '\\.').replace(/\*/g, '[a-zA-Z0-9-]+');
+        const regex = new RegExp('^' + escaped + '$');
         if (regex.test(origin)) return origin;
       }
     }
@@ -50,8 +52,17 @@ app.get('/health', (c) => {
   return c.json({ status: 'ok', timestamp: Date.now() });
 });
 
-// Email webhook handler
+// Email webhook handler (protected by optional WEBHOOK_SECRET)
 app.post('/webhook/email', async (c) => {
+  // If WEBHOOK_SECRET is set, require it via Authorization header
+  const env = c.env as Env;
+  if (env.WEBHOOK_SECRET) {
+    const authHeader = c.req.header('Authorization');
+    const providedSecret = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : '';
+    if (providedSecret !== env.WEBHOOK_SECRET) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+  }
   try {
     await handleIncomingEmail(c);
     return c.json({ success: true });

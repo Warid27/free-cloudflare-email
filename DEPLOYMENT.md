@@ -51,11 +51,10 @@ database_name = "email-system-db"
 database_id = "paste-your-database-id-here"
 \`\`\`
 
-Update admin token (choose a strong token):
+Set admin token as a **secret** (never in wrangler.toml [vars]):
 
-\`\`\`toml
-[vars]
-ADMIN_TOKEN = "your-super-secure-token-123456"
+\`\`\`bash
+echo "your-strong-admin-token" | wrangler secret put ADMIN_TOKEN
 \`\`\`
 
 ### 4. Database Setup (2 minutes)
@@ -171,16 +170,64 @@ To use your own domain instead of workers.dev:
 5. Wait for SSL certificate provisioning (~2 minutes)
 6. Access via \`https://email.yourdomain.com\`
 
-## Environment Variables
+## Environment Variables & Secrets
 
-For production, consider using Wrangler secrets:
+### Secrets (stored in Cloudflare, not in code)
 
 \`\`\`bash
-# Set admin token as secret
-echo "your-super-secure-token" | wrangler secret put ADMIN_TOKEN
+# Admin token
+wrangler secret put ADMIN_TOKEN
+
+# Webhook secret (optional, for webhook endpoint protection)
+wrangler secret put WEBHOOK_SECRET
 \`\`\`
 
-## Updating the System
+### Non-secret vars (in wrangler.toml [vars])
+
+| Variable | Description |
+|----------|-------------|
+| `ENVIRONMENT` | `development` or `production` |
+| `CORS_ORIGINS` | Comma-separated allowed origins |
+
+> **⚠️ Never put ADMIN_TOKEN or secrets in wrangler.toml [vars].** Use `wrangler secret put` instead.
+
+## CI/CD with GitHub Actions
+
+This project includes GitHub Actions workflows for automated CI and deployment.
+
+### Required GitHub Secrets
+
+Set these secrets in your repository (Settings → Secrets → Actions):
+
+| Secret | Description |
+|--------|-------------|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Workers/D1 permissions |
+| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
+
+### Workflows
+
+| Workflow | Trigger | What it does |
+|----------|---------|-------------|
+| CI (`ci.yml`) | Push/PR to `main` | TypeScript type check + dry-run build |
+| Deploy (`deploy.yml`) | Push to `main` | Applies migrations + deploys to Workers |
+
+### Setup Steps
+
+1. Create a Cloudflare API token:
+   - Go to [Cloudflare Dashboard → My Profile → API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+   - Create a token with `Workers Scripts:Edit`, `D1:Edit`, and `Account:Read` permissions
+   - Copy the token
+
+2. Find your Account ID:
+   - Go to any Cloudflare Dashboard page → right sidebar → Account ID
+
+3. Add secrets to GitHub:
+   - Go to your repo → Settings → Secrets and variables → Actions
+   - Add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`
+
+4. Push to `main` — deployment happens automatically!
+
+### Updating the System
 
 \`\`\`bash
 # Pull latest changes
@@ -189,8 +236,11 @@ git pull
 # Install any new dependencies
 npm install
 
-# Deploy updates
-wrangler deploy
+# Deploy updates (automatic via GitHub Actions on push to main)
+git push origin main
+
+# Or deploy manually:
+npx wrangler deploy
 \`\`\`
 
 ## Rollback

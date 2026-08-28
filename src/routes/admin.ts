@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { Env, Variables } from '../types';
 import { getCurrentTimestamp, formatUserForResponse, generateUUID, generateRandomEmailPrefix } from '../utils';
+import { sanitizeHtml } from '../sanitizer';
 import { requireAdmin } from '../middleware';
 import { errorResponse, successResponse } from '../helpers';
 
@@ -51,11 +52,32 @@ adminRoutes.post('/users/:userId/unban', requireAdmin, async (c) => {
   }
 });
 
-// Delete a user
+// Delete a user (cascade: emails → sent_emails → permissions → addresses → user)
 adminRoutes.delete('/users/:userId', requireAdmin, async (c) => {
   const userId = c.req.param('userId');
 
   try {
+    // 1. Delete emails linked to user's addresses
+    await c.env.DB.prepare(
+      `DELETE FROM emails WHERE address_id IN (
+        SELECT id FROM email_addresses WHERE user_id = ?
+      )`
+    ).bind(userId).run();
+    // 2. Delete sent emails linked to user's addresses
+    await c.env.DB.prepare(
+      `DELETE FROM sent_emails WHERE address_id IN (
+        SELECT id FROM email_addresses WHERE user_id = ?
+      )`
+    ).bind(userId).run();
+    // 3. Delete send permissions linked to user's addresses
+    await c.env.DB.prepare(
+      `DELETE FROM send_permissions WHERE address_id IN (
+        SELECT id FROM email_addresses WHERE user_id = ?
+      )`
+    ).bind(userId).run();
+    // 4. Delete user's email addresses
+    await c.env.DB.prepare('DELETE FROM email_addresses WHERE user_id = ?').bind(userId).run();
+    // 5. Delete the user
     await c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(userId).run();
     return c.json(successResponse({ message: 'User deleted' }));
   } catch (error) {
@@ -307,7 +329,13 @@ adminRoutes.get('/sent-emails/:emailId', requireAdmin, async (c) => {
       return c.json(errorResponse('Sent email not found', 404));
     }
 
-    return c.json(successResponse({ email }));
+    // Sanitize HTML body to prevent XSS
+    const sanitized = {
+      ...email,
+      body_html: sanitizeHtml(email.body_html as string | null),
+    };
+
+    return c.json(successResponse({ email: sanitized }));
   } catch (error) {
     return c.json(errorResponse('Failed to fetch sent email', 500));
   }
@@ -319,32 +347,24 @@ adminRoutes.get('/inbox', requireAdmin, async (c) => {
   const offset = parseInt(c.req.query('offset') || '0');
 
   try {
-    // Fetch received emails with direction tag
-    const received = await c.env.DB.prepare(
-      `SELECT e.id, e.from_address, e.to_address, e.subject, e.received_at as timestamp, ea.user_id, 'received' as direction
-       FROM emails e
-       INNER JOIN email_addresses ea ON e.address_id = ea.id
-       ORDER BY e.received_at DESC
-       LIMIT ? OFFSET ?`
+    // Use UNION to get a properly interleaved timeline with correct pagination
+    const all = await c.env.DB.prepare(
+      `(
+        SELECT e.id, e.from_address, e.to_address, e.subject, e.received_at as timestamp, ea.user_id, 'received' as direction
+        FROM emails e
+        INNER JOIN email_addresses ea ON e.address_id = ea.id
+      )
+      UNION ALL
+      (
+        SELECT se.id, se.from_address, se.to_address, se.subject, se.sent_at as timestamp, ea.user_id, 'sent' as direction
+        FROM sent_emails se
+        INNER JOIN email_addresses ea ON se.address_id = ea.id
+      )
+      ORDER BY timestamp DESC
+      LIMIT ? OFFSET ?`
     ).bind(limit, offset).all();
 
-    // Fetch sent emails with direction tag
-    const sent = await c.env.DB.prepare(
-      `SELECT se.id, se.from_address, se.to_address, se.subject, se.sent_at as timestamp, ea.user_id, 'sent' as direction
-       FROM sent_emails se
-       INNER JOIN email_addresses ea ON se.address_id = ea.id
-       ORDER BY se.sent_at DESC
-       LIMIT ? OFFSET ?`
-    ).bind(limit, offset).all();
-
-    // Merge and sort by timestamp descending
-    const receivedResults = received?.results || [];
-    const sentResults = sent?.results || [];
-    const all = [...receivedResults, ...sentResults]
-      .sort((a: any, b: any) => b.timestamp - a.timestamp)
-      .slice(0, limit);
-
-    return c.json(successResponse({ emails: all }));
+    return c.json(successResponse({ emails: all.results || [] }));
   } catch (error) {
     console.error('Failed to fetch inbox:', error);
     return c.json(errorResponse('Failed to fetch inbox', 500));

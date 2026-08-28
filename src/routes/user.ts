@@ -63,6 +63,28 @@ userRoutes.delete('/me', requireAuth, async (c) => {
   const user = c.get('user');
 
   try {
+    // Cascade delete: remove associated data first
+    // 1. Delete emails linked to user's addresses
+    await c.env.DB.prepare(
+      `DELETE FROM emails WHERE address_id IN (
+        SELECT id FROM email_addresses WHERE user_id = ?
+      )`
+    ).bind(user.id).run();
+    // 2. Delete sent emails linked to user's addresses
+    await c.env.DB.prepare(
+      `DELETE FROM sent_emails WHERE address_id IN (
+        SELECT id FROM email_addresses WHERE user_id = ?
+      )`
+    ).bind(user.id).run();
+    // 3. Delete send permissions linked to user's addresses
+    await c.env.DB.prepare(
+      `DELETE FROM send_permissions WHERE address_id IN (
+        SELECT id FROM email_addresses WHERE user_id = ?
+      )`
+    ).bind(user.id).run();
+    // 4. Delete user's email addresses
+    await c.env.DB.prepare('DELETE FROM email_addresses WHERE user_id = ?').bind(user.id).run();
+    // 5. Delete the user
     await c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id).run();
     return c.json(successResponse({ message: 'Account deleted' }));
   } catch (error) {
