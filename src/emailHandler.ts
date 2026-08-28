@@ -1,6 +1,8 @@
 import PostalMime from 'postal-mime';
 import { Env } from './types';
 import { generateUUID, getCurrentTimestamp, calculateExpirationTimestamp } from './utils';
+import { getSettingWithDefault } from './settings-cache';
+import { getAddressByString } from './db';
 
 async function streamToBuffer(stream: ReadableStream): Promise<Uint8Array> {
   const reader = stream.getReader();
@@ -43,24 +45,16 @@ export async function handleIncomingEmail(context: any): Promise<void> {
       }
     }
 
-    // Check if the email address exists in our system
-    const addressRecord = await db
-      .prepare('SELECT id FROM email_addresses WHERE address = ?')
-      .bind(toAddress)
-      .first();
+    // Check if the email address exists in our system (uses db.ts wrapper)
+    const addressRecord = await getAddressByString(db, toAddress);
 
     if (!addressRecord) {
       console.log(`Email address not found: ${toAddress}`);
       return;
     }
 
-    // Get TTL setting
-    const ttlSetting = await db
-      .prepare('SELECT value FROM settings WHERE key = ?')
-      .bind('email_ttl_days')
-      .first<{ value: string }>();
-
-    const ttlDays = ttlSetting ? parseInt(ttlSetting.value) : 30;
+    // Get TTL setting (uses in-memory cache — avoids D1 read on every email)
+    const ttlDays = parseInt(await getSettingWithDefault(db, 'email_ttl_days', '30'));
     const expiresAt = calculateExpirationTimestamp(ttlDays);
 
     // Store the email

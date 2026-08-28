@@ -4,6 +4,8 @@ import { getCurrentTimestamp, formatUserForResponse, generateUUID, generateRando
 import { sanitizeHtml } from '../sanitizer';
 import { requireAdmin } from '../middleware';
 import { errorResponse, successResponse } from '../helpers';
+import { getSettingWithDefault, invalidateCache } from '../settings-cache';
+import { deleteUser, updateSetting, getAddressByString, createAddress } from '../db';
 
 export const adminRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -57,28 +59,7 @@ adminRoutes.delete('/users/:userId', requireAdmin, async (c) => {
   const userId = c.req.param('userId');
 
   try {
-    // 1. Delete emails linked to user's addresses
-    await c.env.DB.prepare(
-      `DELETE FROM emails WHERE address_id IN (
-        SELECT id FROM email_addresses WHERE user_id = ?
-      )`
-    ).bind(userId).run();
-    // 2. Delete sent emails linked to user's addresses
-    await c.env.DB.prepare(
-      `DELETE FROM sent_emails WHERE address_id IN (
-        SELECT id FROM email_addresses WHERE user_id = ?
-      )`
-    ).bind(userId).run();
-    // 3. Delete send permissions linked to user's addresses
-    await c.env.DB.prepare(
-      `DELETE FROM send_permissions WHERE address_id IN (
-        SELECT id FROM email_addresses WHERE user_id = ?
-      )`
-    ).bind(userId).run();
-    // 4. Delete user's email addresses
-    await c.env.DB.prepare('DELETE FROM email_addresses WHERE user_id = ?').bind(userId).run();
-    // 5. Delete the user
-    await c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(userId).run();
+    await deleteUser(c.env.DB, userId);
     return c.json(successResponse({ message: 'User deleted' }));
   } catch (error) {
     return c.json(errorResponse('Failed to delete user', 500));
@@ -115,11 +96,7 @@ adminRoutes.post('/addresses/generate', requireAdmin, async (c) => {
   }
 
   try {
-    // Get domain from settings
-    const domainSetting = await c.env.DB.prepare('SELECT value FROM settings WHERE key = ?')
-      .bind('domain')
-      .first<{ value: string }>();
-    const domain = domainSetting?.value || 'al-warid.web.id';
+    const domain = await getSettingWithDefault(c.env.DB, 'domain', 'al-warid.web.id');
 
     const now = getCurrentTimestamp();
     const generated: string[] = [];
@@ -132,8 +109,7 @@ adminRoutes.post('/addresses/generate', requireAdmin, async (c) => {
         const addressId = generateUUID();
 
         // Check for duplicates
-        const existing = await c.env.DB.prepare('SELECT id FROM email_addresses WHERE address = ?')
-          .bind(emailAddress).first();
+        const existing = await getAddressByString(c.env.DB, emailAddress);
 
         if (existing) {
           errors.push(`${emailAddress} already exists`);
@@ -141,9 +117,7 @@ adminRoutes.post('/addresses/generate', requireAdmin, async (c) => {
         }
 
         // Create with admin as user_id (unassigned)
-        await c.env.DB.prepare(
-          'INSERT INTO email_addresses (id, user_id, address, created_at) VALUES (?, ?, ?, ?)'
-        ).bind(addressId, 'admin', emailAddress, now).run();
+        await createAddress(c.env.DB, addressId, 'admin', emailAddress, now);
 
         generated.push(emailAddress);
       } catch (err) {
@@ -177,11 +151,8 @@ adminRoutes.get('/addresses', requireAdmin, async (c) => {
 // Get email TTL setting
 adminRoutes.get('/settings/ttl', requireAdmin, async (c) => {
   try {
-    const setting = await c.env.DB.prepare(
-      'SELECT value FROM settings WHERE key = ?'
-    ).bind('email_ttl_days').first<{ value: string }>();
-
-    return c.json(successResponse({ ttl_days: setting?.value || '30' }));
+    const ttlDays = await getSettingWithDefault(c.env.DB, 'email_ttl_days', '30');
+    return c.json(successResponse({ ttl_days: ttlDays }));
   } catch (error) {
     return c.json(errorResponse('Failed to fetch TTL setting', 500));
   }
@@ -198,9 +169,8 @@ adminRoutes.put('/settings/ttl', requireAdmin, async (c) => {
 
   try {
     const now = getCurrentTimestamp();
-    await c.env.DB.prepare(
-      'UPDATE settings SET value = ?, updated_at = ? WHERE key = ?'
-    ).bind(ttl_days.toString(), now, 'email_ttl_days').run();
+    await updateSetting(c.env.DB, 'email_ttl_days', ttl_days.toString(), now);
+    invalidateCache('email_ttl_days');
 
     return c.json(successResponse({ ttl_days: ttl_days }));
   } catch (error) {
@@ -211,11 +181,8 @@ adminRoutes.put('/settings/ttl', requireAdmin, async (c) => {
 // Get domain setting
 adminRoutes.get('/settings/domain', requireAdmin, async (c) => {
   try {
-    const setting = await c.env.DB.prepare(
-      'SELECT value FROM settings WHERE key = ?'
-    ).bind('domain').first<{ value: string }>();
-
-    return c.json(successResponse({ domain: setting?.value || 'your-domain.com' }));
+    const domain = await getSettingWithDefault(c.env.DB, 'domain', 'your-domain.com');
+    return c.json(successResponse({ domain }));
   } catch (error) {
     return c.json(errorResponse('Failed to fetch domain setting', 500));
   }
@@ -232,9 +199,8 @@ adminRoutes.put('/settings/domain', requireAdmin, async (c) => {
 
   try {
     const now = getCurrentTimestamp();
-    await c.env.DB.prepare(
-      'UPDATE settings SET value = ?, updated_at = ? WHERE key = ?'
-    ).bind(domain, now, 'domain').run();
+    await updateSetting(c.env.DB, 'domain', domain, now);
+    invalidateCache('domain');
 
     return c.json(successResponse({ domain: domain }));
   } catch (error) {

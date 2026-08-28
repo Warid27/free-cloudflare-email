@@ -1,8 +1,17 @@
 import { Hono } from 'hono';
 import { Env, Variables } from '../types';
 import { formatEmailForResponse, generateUUID, getCurrentTimestamp } from '../utils';
-import { requireAuth, verifyAddressOwnership, verifyEmailOwnership, verifyAddressStringOwnership } from '../middleware';
+import { requireAuth } from '../middleware';
 import { errorResponse, successResponse } from '../helpers';
+import {
+  verifyAddressOwnership,
+  verifyAddressStringOwnership,
+  verifyEmailOwnership,
+  getEmailById,
+  deleteEmail,
+  getPermissionForAddress,
+  createPermission,
+} from '../db';
 
 export const emailRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -116,20 +125,11 @@ emailRoutes.get('/:emailId', requireAuth, async (c) => {
   const emailId = c.req.param('emailId');
 
   try {
-    let email;
-    if (user.is_admin) {
-      // Admin can view any email
-      email = await c.env.DB.prepare(
-        `SELECT e.* FROM emails e WHERE e.id = ?`
-      ).bind(emailId).first();
-    } else {
-      // Regular users can only view their own emails
-      email = await c.env.DB.prepare(
-        `SELECT e.* FROM emails e
-         INNER JOIN email_addresses ea ON e.address_id = ea.id
-         WHERE e.id = ? AND ea.user_id = ?`
-      ).bind(emailId, user.id).first();
-    }
+    const email = await getEmailById(
+      c.env.DB,
+      emailId,
+      user.is_admin ? undefined : user.id
+    );
 
     if (!email) {
       return c.json(errorResponse('Email not found', 404));
@@ -152,7 +152,7 @@ emailRoutes.delete('/:emailId', requireAuth, async (c) => {
       return c.json(errorResponse('Email not found', 404));
     }
 
-    await c.env.DB.prepare('DELETE FROM emails WHERE id = ?').bind(emailId).run();
+    await deleteEmail(c.env.DB, emailId);
 
     return c.json(successResponse({ message: 'Email deleted' }));
   } catch (error) {
@@ -171,9 +171,7 @@ emailRoutes.post('/address/:addressId/request-send', requireAuth, async (c) => {
       return c.json(errorResponse('Email address not found', 404));
     }
 
-    const existing = await c.env.DB.prepare(
-      'SELECT id, status FROM send_permissions WHERE address_id = ?'
-    ).bind(addressId).first<{ id: string; status: string }>();
+    const existing = await getPermissionForAddress(c.env.DB, addressId);
 
     if (existing) {
       return c.json(successResponse({
@@ -184,10 +182,7 @@ emailRoutes.post('/address/:addressId/request-send', requireAuth, async (c) => {
 
     const permissionId = generateUUID();
     const now = getCurrentTimestamp();
-
-    await c.env.DB.prepare(
-      'INSERT INTO send_permissions (id, address_id, status, requested_at) VALUES (?, ?, ?, ?)'
-    ).bind(permissionId, addressId, 'pending', now).run();
+    await createPermission(c.env.DB, permissionId, addressId, now);
 
     return c.json(successResponse({
       permission: {
@@ -213,9 +208,7 @@ emailRoutes.post('/send', requireAuth, async (c) => {
       return c.json(errorResponse('From address not found or unauthorized', 404));
     }
 
-    const permission = await c.env.DB.prepare(
-      'SELECT status FROM send_permissions WHERE address_id = ? AND status = ?'
-    ).bind(address.id, 'approved').first();
+    const permission = await getPermissionForAddress(c.env.DB, address.id, 'approved');
 
     if (!permission) {
       return c.json(errorResponse('Send permission not approved for this address', 403));
