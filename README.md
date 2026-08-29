@@ -63,35 +63,50 @@ wrangler deploy
 
 ## API Endpoints
 
-## API Endpoints
-
 ```bash
 # User
-POST /api/user/register
-GET  /api/user/me
+POST   /api/user/register
+GET    /api/user/me
 DELETE /api/user/me
 
 # Addresses
-POST /api/addresses/              # Body: {"prefix": "name"} or {}
-GET  /api/addresses/
+POST   /api/addresses/              # Body: {"prefix": "name"} or {}
+GET    /api/addresses/
 DELETE /api/addresses/:id
 
 # Emails
-GET  /api/emails/address/:id
-GET  /api/emails/:id
+GET    /api/emails?address_id=&count_only=&limit=&offset=
+GET    /api/emails/address/:id
+GET    /api/emails/:id
 DELETE /api/emails/:id
-POST /api/emails/address/:id/request-send
-POST /api/emails/send             # Body: {from, to, subject, text}
+POST   /api/emails/address/:id/request-send
+POST   /api/emails/send             # Body: {from, to, subject, text}
+POST   /api/emails/:id/mark-read
+POST   /api/emails/:id/mark-unread
 
 # Admin (requires admin token)
-GET  /api/admin/stats
-GET  /api/admin/users
-POST /api/admin/users/:id/ban
+GET    /api/admin/stats
+GET    /api/admin/users
+POST   /api/admin/users/:id/ban
+POST   /api/admin/users/:id/unban
 DELETE /api/admin/users/:id
-GET  /api/admin/permissions/pending
-POST /api/admin/permissions/:id/approve
-PUT  /api/admin/settings/ttl      # Body: {"ttl_days": 30}
-PUT  /api/admin/settings/domain   # Body: {"domain": "example.com"}
+GET    /api/admin/emails
+GET    /api/admin/sent-emails
+GET    /api/admin/sent-emails/:id
+GET    /api/admin/inbox
+GET    /api/admin/addresses
+POST   /api/admin/addresses/generate  # Body: {"count": 5, "prefix": "test"}
+GET    /api/admin/permissions/pending
+POST   /api/admin/permissions/:id/approve
+POST   /api/admin/permissions/:id/reject
+GET    /api/admin/settings/ttl
+PUT    /api/admin/settings/ttl       # Body: {"ttl_days": 30}
+GET    /api/admin/settings/domain
+PUT    /api/admin/settings/domain    # Body: {"domain": "example.com"}
+
+# Other
+GET    /health                       # Health check
+POST   /webhook/email                # Email webhook (optional auth)
 ```
 
 **Authentication:** `Authorization: Bearer YOUR_TOKEN`
@@ -103,6 +118,24 @@ curl -X POST https://your-worker.workers.dev/api/addresses/ \
   -H "Content-Type: application/json" \
   -d '{"prefix": "john"}'
 ```
+
+## CI/CD (GitHub Actions)
+
+This project includes automated CI and deployment via GitHub Actions:
+
+| Workflow | Trigger | What it does |
+|----------|---------|-------------|
+| CI | Push/PR to `main` | TypeScript type check + build verification |
+| Deploy | Push to `main` | Runs migrations + deploys to Cloudflare Workers |
+
+### Required GitHub Secrets
+
+| Secret | Description |
+|--------|-------------|
+| `CLOUDFLARE_API_TOKEN` | API token with Workers/D1 permissions |
+| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID |
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for full setup instructions.
 
 ## Development
 

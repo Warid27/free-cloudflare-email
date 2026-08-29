@@ -13,7 +13,8 @@
     "db:migrations:create": "wrangler d1 migrations create email-system-db",
     "db:migrations:apply": "wrangler d1 migrations apply email-system-db",
     "db:migrations:apply:remote": "wrangler d1 migrations apply email-system-db --remote",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "cloudflare",

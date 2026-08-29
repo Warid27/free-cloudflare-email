@@ -45,7 +45,10 @@ export function isValidEmailPrefix(prefix: string): boolean {
   return prefixRegex.test(prefix);
 }
 
+import { sanitizeHtml } from './sanitizer';
+
 // Format email response (remove sensitive data)
+// Sanitizes html_body to prevent XSS from malicious emails
 export function formatEmailForResponse(email: any) {
   return {
     id: email.id,
@@ -53,7 +56,7 @@ export function formatEmailForResponse(email: any) {
     to_address: email.to_address,
     subject: email.subject,
     text_body: email.body_text,
-    html_body: email.body_html,
+    html_body: sanitizeHtml(email.body_html),
     received_at: email.received_at,
     expires_at: email.expires_at,
     is_read: email.is_read || 0,

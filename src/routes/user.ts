@@ -3,6 +3,8 @@ import { Env, Variables } from '../types';
 import { generateToken, generateUUID, getCurrentTimestamp, formatUserForResponse, generateRandomEmailPrefix } from '../utils';
 import { requireAuth } from '../middleware';
 import { errorResponse, successResponse } from '../helpers';
+import { getSettingWithDefault } from '../settings-cache';
+import { createUser, createAddress, deleteUser } from '../db';
 
 export const userRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -13,24 +15,17 @@ userRoutes.post('/register', async (c) => {
     const token = generateToken();
     const now = getCurrentTimestamp();
 
-    await c.env.DB.prepare(
-      'INSERT INTO users (id, token, is_admin, is_banned, created_at, updated_at) VALUES (?, ?, 0, 0, ?, ?)'
-    ).bind(userId, token, now, now).run();
+    await createUser(c.env.DB, userId, token, now);
 
     // Auto-create an email address for the new user
     let autoCreatedAddress = null;
     try {
-      const domainSetting = await c.env.DB.prepare('SELECT value FROM settings WHERE key = ?')
-        .bind('domain')
-        .first<{ value: string }>();
-      const domain = domainSetting?.value || 'al-warid.web.id';
+      const domain = await getSettingWithDefault(c.env.DB, 'domain', 'al-warid.web.id');
       const prefix = generateRandomEmailPrefix();
       const emailAddress = `${prefix}@${domain}`;
       const addressId = generateUUID();
 
-      await c.env.DB.prepare(
-        'INSERT INTO email_addresses (id, user_id, address, created_at) VALUES (?, ?, ?, ?)'
-      ).bind(addressId, userId, emailAddress, now).run();
+      await createAddress(c.env.DB, addressId, userId, emailAddress, now);
 
       autoCreatedAddress = emailAddress;
     } catch (addressError) {
@@ -63,7 +58,7 @@ userRoutes.delete('/me', requireAuth, async (c) => {
   const user = c.get('user');
 
   try {
-    await c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id).run();
+    await deleteUser(c.env.DB, user.id);
     return c.json(successResponse({ message: 'Account deleted' }));
   } catch (error) {
     return c.json(errorResponse('Failed to delete account', 500));

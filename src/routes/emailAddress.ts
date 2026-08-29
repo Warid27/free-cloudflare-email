@@ -6,8 +6,10 @@ import {
   generateRandomEmailPrefix,
   isValidEmailPrefix,
 } from '../utils';
-import { requireAuth, verifyAddressOwnership } from '../middleware';
+import { requireAuth } from '../middleware';
 import { errorResponse, successResponse } from '../helpers';
+import { getSettingWithDefault } from '../settings-cache';
+import { createAddress, getAddressByString, verifyAddressOwnership, deleteAddress, listAddressesByUser } from '../db';
 
 export const emailAddressRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -23,14 +25,8 @@ emailAddressRoutes.post('/', requireAuth, async (c) => {
   }
 
   try {
-    // Get domain from settings
-    const domainSetting = await c.env.DB.prepare('SELECT value FROM settings WHERE key = ?')
-      .bind('domain')
-      .first<{ value: string }>();
+    const domain = await getSettingWithDefault(c.env.DB, 'domain', 'your-domain.com');
 
-    const domain = domainSetting?.value || 'your-domain.com';
-
-    // Generate or validate prefix
     let emailPrefix: string;
     if (prefix) {
       if (!isValidEmailPrefix(prefix)) {
@@ -43,22 +39,14 @@ emailAddressRoutes.post('/', requireAuth, async (c) => {
 
     const emailAddress = `${emailPrefix}@${domain}`;
 
-    // Check if address already exists
-    const existing = await c.env.DB.prepare(
-      'SELECT id FROM email_addresses WHERE address = ?'
-    ).bind(emailAddress).first();
-
+    const existing = await getAddressByString(c.env.DB, emailAddress);
     if (existing) {
       return c.json(errorResponse('Email address already exists', 409));
     }
 
-    // Create the email address
     const addressId = generateUUID();
     const now = getCurrentTimestamp();
-
-    await c.env.DB.prepare(
-      'INSERT INTO email_addresses (id, user_id, address, created_at) VALUES (?, ?, ?, ?)'
-    ).bind(addressId, user.id, emailAddress, now).run();
+    await createAddress(c.env.DB, addressId, user.id, emailAddress, now);
 
     return c.json(successResponse({
       address: {
@@ -77,19 +65,8 @@ emailAddressRoutes.get('/', requireAuth, async (c) => {
   const user = c.get('user');
 
   try {
-    const addresses = await c.env.DB.prepare(`
-      SELECT
-        ea.id,
-        ea.address,
-        ea.created_at,
-        sp.status as send_permission_status
-      FROM email_addresses ea
-      LEFT JOIN send_permissions sp ON ea.id = sp.address_id
-      WHERE ea.user_id = ?
-      ORDER BY ea.created_at DESC
-    `).bind(user.id).all();
-
-    return c.json(successResponse({ addresses: addresses.results }));
+    const addresses = await listAddressesByUser(c.env.DB, user.id);
+    return c.json(successResponse({ addresses }));
   } catch (error) {
     return c.json(errorResponse('Failed to fetch email addresses', 500));
   }
@@ -102,13 +79,10 @@ emailAddressRoutes.delete('/:addressId', requireAuth, async (c) => {
 
   try {
     const address = await verifyAddressOwnership(c.env.DB, addressId, user.id);
-
     if (!address) {
       return c.json(errorResponse('Email address not found', 404));
     }
-
-    await c.env.DB.prepare('DELETE FROM email_addresses WHERE id = ?').bind(addressId).run();
-
+    await deleteAddress(c.env.DB, addressId);
     return c.json(successResponse({ message: 'Email address deleted' }));
   } catch (error) {
     return c.json(errorResponse('Failed to delete email address', 500));

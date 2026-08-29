@@ -2,6 +2,8 @@ export interface Env {
   DB: D1Database;
   SEND_EMAIL: SendEmailBinding;
   ENVIRONMENT: string;
+  CORS_ORIGINS: string;
+  WEBHOOK_SECRET?: string;
 }
 
 export interface SendEmailBinding {

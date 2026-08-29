@@ -1,8 +1,11 @@
 import { Hono } from 'hono';
 import { Env, Variables } from '../types';
 import { getCurrentTimestamp, formatUserForResponse, generateUUID, generateRandomEmailPrefix } from '../utils';
+import { sanitizeHtml } from '../sanitizer';
 import { requireAdmin } from '../middleware';
 import { errorResponse, successResponse } from '../helpers';
+import { getSettingWithDefault, invalidateCache } from '../settings-cache';
+import { deleteUser, updateSetting, getAddressByString, createAddress } from '../db';
 
 export const adminRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -51,12 +54,12 @@ adminRoutes.post('/users/:userId/unban', requireAdmin, async (c) => {
   }
 });
 
-// Delete a user
+// Delete a user (cascade: emails → sent_emails → permissions → addresses → user)
 adminRoutes.delete('/users/:userId', requireAdmin, async (c) => {
   const userId = c.req.param('userId');
 
   try {
-    await c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(userId).run();
+    await deleteUser(c.env.DB, userId);
     return c.json(successResponse({ message: 'User deleted' }));
   } catch (error) {
     return c.json(errorResponse('Failed to delete user', 500));
@@ -93,11 +96,7 @@ adminRoutes.post('/addresses/generate', requireAdmin, async (c) => {
   }
 
   try {
-    // Get domain from settings
-    const domainSetting = await c.env.DB.prepare('SELECT value FROM settings WHERE key = ?')
-      .bind('domain')
-      .first<{ value: string }>();
-    const domain = domainSetting?.value || 'al-warid.web.id';
+    const domain = await getSettingWithDefault(c.env.DB, 'domain', 'al-warid.web.id');
 
     const now = getCurrentTimestamp();
     const generated: string[] = [];
@@ -110,8 +109,7 @@ adminRoutes.post('/addresses/generate', requireAdmin, async (c) => {
         const addressId = generateUUID();
 
         // Check for duplicates
-        const existing = await c.env.DB.prepare('SELECT id FROM email_addresses WHERE address = ?')
-          .bind(emailAddress).first();
+        const existing = await getAddressByString(c.env.DB, emailAddress);
 
         if (existing) {
           errors.push(`${emailAddress} already exists`);
@@ -119,9 +117,7 @@ adminRoutes.post('/addresses/generate', requireAdmin, async (c) => {
         }
 
         // Create with admin as user_id (unassigned)
-        await c.env.DB.prepare(
-          'INSERT INTO email_addresses (id, user_id, address, created_at) VALUES (?, ?, ?, ?)'
-        ).bind(addressId, 'admin', emailAddress, now).run();
+        await createAddress(c.env.DB, addressId, 'admin', emailAddress, now);
 
         generated.push(emailAddress);
       } catch (err) {
@@ -155,11 +151,8 @@ adminRoutes.get('/addresses', requireAdmin, async (c) => {
 // Get email TTL setting
 adminRoutes.get('/settings/ttl', requireAdmin, async (c) => {
   try {
-    const setting = await c.env.DB.prepare(
-      'SELECT value FROM settings WHERE key = ?'
-    ).bind('email_ttl_days').first<{ value: string }>();
-
-    return c.json(successResponse({ ttl_days: setting?.value || '30' }));
+    const ttlDays = await getSettingWithDefault(c.env.DB, 'email_ttl_days', '30');
+    return c.json(successResponse({ ttl_days: ttlDays }));
   } catch (error) {
     return c.json(errorResponse('Failed to fetch TTL setting', 500));
   }
@@ -176,9 +169,8 @@ adminRoutes.put('/settings/ttl', requireAdmin, async (c) => {
 
   try {
     const now = getCurrentTimestamp();
-    await c.env.DB.prepare(
-      'UPDATE settings SET value = ?, updated_at = ? WHERE key = ?'
-    ).bind(ttl_days.toString(), now, 'email_ttl_days').run();
+    await updateSetting(c.env.DB, 'email_ttl_days', ttl_days.toString(), now);
+    invalidateCache('email_ttl_days');
 
     return c.json(successResponse({ ttl_days: ttl_days }));
   } catch (error) {
@@ -189,11 +181,8 @@ adminRoutes.put('/settings/ttl', requireAdmin, async (c) => {
 // Get domain setting
 adminRoutes.get('/settings/domain', requireAdmin, async (c) => {
   try {
-    const setting = await c.env.DB.prepare(
-      'SELECT value FROM settings WHERE key = ?'
-    ).bind('domain').first<{ value: string }>();
-
-    return c.json(successResponse({ domain: setting?.value || 'your-domain.com' }));
+    const domain = await getSettingWithDefault(c.env.DB, 'domain', 'your-domain.com');
+    return c.json(successResponse({ domain }));
   } catch (error) {
     return c.json(errorResponse('Failed to fetch domain setting', 500));
   }
@@ -210,9 +199,8 @@ adminRoutes.put('/settings/domain', requireAdmin, async (c) => {
 
   try {
     const now = getCurrentTimestamp();
-    await c.env.DB.prepare(
-      'UPDATE settings SET value = ?, updated_at = ? WHERE key = ?'
-    ).bind(domain, now, 'domain').run();
+    await updateSetting(c.env.DB, 'domain', domain, now);
+    invalidateCache('domain');
 
     return c.json(successResponse({ domain: domain }));
   } catch (error) {
@@ -307,7 +295,13 @@ adminRoutes.get('/sent-emails/:emailId', requireAdmin, async (c) => {
       return c.json(errorResponse('Sent email not found', 404));
     }
 
-    return c.json(successResponse({ email }));
+    // Sanitize HTML body to prevent XSS
+    const sanitized = {
+      ...email,
+      body_html: sanitizeHtml(email.body_html as string | null),
+    };
+
+    return c.json(successResponse({ email: sanitized }));
   } catch (error) {
     return c.json(errorResponse('Failed to fetch sent email', 500));
   }
@@ -319,32 +313,24 @@ adminRoutes.get('/inbox', requireAdmin, async (c) => {
   const offset = parseInt(c.req.query('offset') || '0');
 
   try {
-    // Fetch received emails with direction tag
-    const received = await c.env.DB.prepare(
-      `SELECT e.id, e.from_address, e.to_address, e.subject, e.received_at as timestamp, ea.user_id, 'received' as direction
-       FROM emails e
-       INNER JOIN email_addresses ea ON e.address_id = ea.id
-       ORDER BY e.received_at DESC
-       LIMIT ? OFFSET ?`
+    // Use UNION to get a properly interleaved timeline with correct pagination
+    const all = await c.env.DB.prepare(
+      `(
+        SELECT e.id, e.from_address, e.to_address, e.subject, e.received_at as timestamp, ea.user_id, 'received' as direction
+        FROM emails e
+        INNER JOIN email_addresses ea ON e.address_id = ea.id
+      )
+      UNION ALL
+      (
+        SELECT se.id, se.from_address, se.to_address, se.subject, se.sent_at as timestamp, ea.user_id, 'sent' as direction
+        FROM sent_emails se
+        INNER JOIN email_addresses ea ON se.address_id = ea.id
+      )
+      ORDER BY timestamp DESC
+      LIMIT ? OFFSET ?`
     ).bind(limit, offset).all();
 
-    // Fetch sent emails with direction tag
-    const sent = await c.env.DB.prepare(
-      `SELECT se.id, se.from_address, se.to_address, se.subject, se.sent_at as timestamp, ea.user_id, 'sent' as direction
-       FROM sent_emails se
-       INNER JOIN email_addresses ea ON se.address_id = ea.id
-       ORDER BY se.sent_at DESC
-       LIMIT ? OFFSET ?`
-    ).bind(limit, offset).all();
-
-    // Merge and sort by timestamp descending
-    const receivedResults = received?.results || [];
-    const sentResults = sent?.results || [];
-    const all = [...receivedResults, ...sentResults]
-      .sort((a: any, b: any) => b.timestamp - a.timestamp)
-      .slice(0, limit);
-
-    return c.json(successResponse({ emails: all }));
+    return c.json(successResponse({ emails: all.results || [] }));
   } catch (error) {
     console.error('Failed to fetch inbox:', error);
     return c.json(errorResponse('Failed to fetch inbox', 500));
