@@ -71,13 +71,13 @@ CREATE INDEX IF NOT EXISTS idx_send_permissions_status ON send_permissions(statu
 CREATE INDEX IF NOT EXISTS idx_users_token ON users(token);
 CREATE INDEX IF NOT EXISTS idx_users_is_banned ON users(is_banned);
 
--- Insert default settings
-INSERT INTO settings (key, value, updated_at) VALUES 
+-- Insert default settings (idempotent)
+INSERT OR IGNORE INTO settings (key, value, updated_at) VALUES 
     ('email_ttl_days', '30', strftime('%s', 'now')),
     ('domain', 'your-domain.com', strftime('%s', 'now'));
 
--- Create default admin user (token: admin-secret-token-change-this)
-INSERT INTO users (id, token, is_admin, is_banned, created_at, updated_at) VALUES 
+-- Create default admin user (token: admin-secret-token-change-this, idempotent)
+INSERT OR IGNORE INTO users (id, token, is_admin, is_banned, created_at, updated_at) VALUES 
     ('admin', 'admin-secret-token-change-this', 1, 0, strftime('%s', 'now'), strftime('%s', 'now'));
 
 -- Mark this migration as applied
