@@ -15,3 +15,7 @@ CREATE TABLE IF NOT EXISTS sent_emails (
 CREATE INDEX IF NOT EXISTS idx_sent_emails_address_id ON sent_emails(address_id);
 CREATE INDEX IF NOT EXISTS idx_sent_emails_sent_at ON sent_emails(sent_at);
 CREATE INDEX IF NOT EXISTS idx_sent_emails_from_address ON sent_emails(from_address);
+
+-- Mark this migration as applied
+INSERT OR IGNORE INTO migrations (name, applied_at) VALUES 
+    ('0004_create_sent_emails.sql', strftime('%s', 'now'));
